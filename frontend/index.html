@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WCC শিশু স্বাস্থ্য রেজিস্ট্রি ও মাল্টি-ক্যাম্প ম্যানেজমেন্ট সিস্টেম</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body style="display:flex; align-items:center; justify-content:center; min-height:100vh; background: var(--bg-main);">
+  <div style="text-align: center; max-width: 500px; padding: 40px 24px; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-color);">
+    <div class="brand-logo-badge" style="width: 80px; height: 80px; margin: 0 auto 16px; border: 3px solid var(--wcc-gold);">
+      <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
+    </div>
+    <h1 style="color: var(--primary); font-size: 1.6rem; margin-bottom: 8px;">উই ক্যান চেঞ্জ (WCC)</h1>
+    <h2 style="font-size: 1.2rem; color: var(--text-main); margin-bottom: 12px;">শিশু স্বাস্থ্য রেজিস্ট্রি ও মাল্টি-ক্যাম্প পোর্টাল</h2>
+    <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+      বিনামূল্যে স্বাস্থ্য ক্যাম্প পরিচালনা, শিশু রোগী নিবন্ধন, নিরাপদ প্রেসক্রিপশন সংরক্ষণ ও সমন্বিত রিপোর্ট সিস্টেম।
+    </p>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <a href="/pages/dashboard.html" onclick="localStorage.setItem('wcc_active_role','SUPER_ADMIN')" class="btn btn-primary btn-lg" style="text-decoration:none;">
+        সুপার অ্যাডমিন ড্যাশবোর্ড (Super Admin)
+      </a>
+      <a href="/pages/consultation.html" onclick="localStorage.setItem('wcc_active_role','DOCTOR')" class="btn btn-secondary" style="text-decoration:none;">
+        চিকিৎসক কর্নার: রোগী সার্চ ও প্রেসক্রিপশন আপলোড
+      </a>
+      <a href="/pages/registration.html" onclick="localStorage.setItem('wcc_active_role','REGISTRATION_VOLUNTEER')" class="btn btn-outline" style="text-decoration:none;">
+        রোগী নিবন্ধন ডেস্ক (Registration Desk)
+      </a>
+      <a href="/pages/camps.html" onclick="localStorage.setItem('wcc_active_role','SUPER_ADMIN')" class="btn btn-outline" style="text-decoration:none;">
+        স্বাস্থ্য ক্যাম্পসমূহ (Health Camps)
+      </a>
+    </div>
+
+    <div style="margin-top: 24px; font-size: 0.8rem; color: var(--text-light);">
+      &copy; 2026 We Can Change (WCC) • সর্বস্বত্ব সংরক্ষিত
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    // Automatic redirection if already logged in
+    (async function() {
+      try {
+        const res = await apiFetch('/api/auth/me');
+        if (res && res.data && res.data.user) {
+          const role = res.data.user.role;
+          if (role === 'DOCTOR') window.location.href = '/pages/consultation.html';
+          else if (role === 'REGISTRATION_VOLUNTEER') window.location.href = '/pages/registration.html';
+          else window.location.href = '/pages/dashboard.html';
+        }
+      } catch (e) {
+        // Not logged in, stay on portal
+      }
+    })();
+  </script>
+</body>
+</html>

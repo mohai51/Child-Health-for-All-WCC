@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>প্রধান ড্যাশবোর্ড - WCC শিশু স্বাস্থ্য রেজিস্ট্রি</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display:flex; align-items:center; gap:12px;">
+        <div class="brand-logo-badge">
+          <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
+        </div>
+        <div>
+          <div class="brand-title">উই ক্যান চেঞ্জ</div>
+          <div class="brand-subtitle">শিশু স্বাস্থ্য রেজিস্ট্রি</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-heading">প্রধান মেনু</div>
+        <a href="/pages/dashboard.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>প্রধান ড্যাশবোর্ড</span>
+        </a>
+        <a href="/pages/camps.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>স্বাস্থ্য ক্যাম্পসমূহ</span>
+        </a>
+
+        <div class="nav-heading nav-admin-only">প্রশাসন ও টিম</div>
+        <a href="/pages/doctors.html" class="nav-link nav-admin-only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>চিকিৎসক ব্যবস্থাপনা</span>
+        </a>
+        <a href="/pages/volunteers.html" class="nav-link nav-admin-only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>স্বেচ্ছাসেবক ব্যবস্থাপনা</span>
+        </a>
+        <a href="/pages/reports.html" class="nav-link nav-admin-only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>রিপোর্ট ও এক্সপোর্ট</span>
+        </a>
+      </nav>
+
+      <div style="margin-top: auto; padding: 16px; border-top: 1px solid var(--border-color);">
+        <button id="logout-btn" class="btn btn-outline btn-block" style="color: var(--danger);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          লগআউট
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Top Header -->
+      <header class="top-header">
+        <div class="brand-section">
+          <button class="mobile-menu-toggle" aria-label="মেনু খুলুন">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span style="font-weight:700; font-size:1.1rem; color:var(--text-main);">সার্বজনীন স্বাস্থ্য ক্যাম্প ওভারভিউ</span>
+        </div>
+
+        <div class="header-user-section">
+          <div class="user-badge">
+            <div style="width:30px; height:30px; border-radius:50%; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div class="user-info-text">
+              <span id="header-user-name" class="user-name">ব্যবহারকারী</span>
+              <span id="header-user-role" class="user-role">রোল</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Body -->
+      <main class="page-container">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h1 style="font-size:1.6rem; color:var(--text-main);">প্রধান ড্যাশবোর্ড</h1>
+            <p style="color:var(--text-muted); font-size:0.95rem;">বাস্তব ডাটাবেজ থেকে সংগৃহীত সামগ্রিক পরিসংখ্যান ও ক্যাম্প তালিকা</p>
+          </div>
+          <div>
+            <a href="/pages/camps.html" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              নতুন স্বাস্থ্য ক্যাম্প তৈরি করুন
+            </a>
+          </div>
+        </div>
+
+        <!-- Real Aggregate Statistics Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-icon primary">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-camps" class="stat-value">০</div>
+              <div class="stat-label">মোট স্বাস্থ্য ক্যাম্প</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            </div>
+            <div>
+              <div id="stat-active-camps" class="stat-value">০</div>
+              <div class="stat-label">সক্রিয় ক্যাম্প</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon info">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/></svg>
+            </div>
+            <div>
+              <div id="stat-closed-camps" class="stat-value">০</div>
+              <div class="stat-label">সমাপ্ত / বন্ধ ক্যাম্প</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon accent">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="7" r="4"/><path d="M6 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/></svg>
+            </div>
+            <div>
+              <div id="stat-unique-patients" class="stat-value">০</div>
+              <div class="stat-label">অনন্য শিশু রোগী</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon primary">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-visits" class="stat-value">০</div>
+              <div class="stat-label">মোট ক্যাম্প ভিজিট</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon success">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-consultations" class="stat-value">০</div>
+              <div class="stat-label">মোট চিকিৎসা পরামর্শ</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon info">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v6"/><path d="M16 15v6"/><path d="M12 18h4"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-doctors" class="stat-value">০</div>
+              <div class="stat-label">অংশগ্রহণকারী চিকিৎসক</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon accent">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-volunteers" class="stat-value">০</div>
+              <div class="stat-label">মোট ভলান্টিয়ার</div>
+            </div>
+          </div>
+
+          <div class="stat-card">
+            <div class="stat-icon danger">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div>
+              <div id="stat-total-referrals" class="stat-value">০</div>
+              <div class="stat-label">বিশেষায়িত রেফারেল</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Individual Health Camp Cards -->
+        <div style="margin-top: 32px; margin-bottom: 16px; display:flex; justify-content:space-between; align-items:center;">
+          <h2 style="font-size:1.3rem;">স্বাস্থ্য ক্যাম্পসমূহ</h2>
+          <span style="font-size:0.9rem; color:var(--text-muted);">ক্যাম্প কার্ডে ক্লিক করে সরাসরি ক্যাম্প ড্যাশবোর্ডে প্রবেশ করুন</span>
+        </div>
+
+        <div id="camps-container" class="camps-grid">
+          <!-- Dynamically populated by dashboard.js -->
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/dashboard.js"></script>
+</body>
+</html>

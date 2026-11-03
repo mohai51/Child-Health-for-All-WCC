@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>চিকিৎসক ব্যবস্থাপনা - WCC শিশু স্বাস্থ্য রেজিস্ট্রি</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <style>
+    .avatar-upload-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg-surface-alt, #f8fafc);
+      border: 1px dashed var(--border-color, #cbd5e1);
+      border-radius: var(--radius-md, 8px);
+    }
+    .avatar-preview-box {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 2px solid var(--primary, #0284c7);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .avatar-preview-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .avatar-upload-info {
+      flex: 1;
+    }
+    .doctor-avatar-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: #f1f5f9;
+      border: 2px solid #e2e8f0;
+      flex-shrink: 0;
+    }
+    .doctor-avatar-placeholder {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: #e0f2fe;
+      color: #0369a1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .specialty-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+    .camp-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.84rem;
+      background: #f0fdf4;
+      color: #166534;
+      border: 1px solid #bbf7d0;
+    }
+    .camp-badge.none {
+      background: #f8fafc;
+      color: #64748b;
+      border: 1px solid #e2e8f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display:flex; align-items:center; gap:12px;">
+        <div class="brand-logo-badge">
+          <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
+        </div>
+        <div>
+          <div class="brand-title">উই ক্যান চেঞ্জ</div>
+          <div class="brand-subtitle">শিশু স্বাস্থ্য রেজিস্ট্রি</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-heading">প্রধান মেনু</div>
+        <a href="/pages/dashboard.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          <span>ড্যাশবোর্ড</span>
+        </a>
+        <a href="/pages/camps.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          <span>স্বাস্থ্য ক্যাম্পসমূহ</span>
+        </a>
+
+        <div class="nav-heading nav-volunteer-only">রোগী সেবা</div>
+        <a href="/pages/registration.html" class="nav-link nav-volunteer-only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <span>রোগী নিবন্ধন ডেস্ক</span>
+        </a>
+
+        <div class="nav-heading nav-doctor-only">চিকিৎসক কর্নার</div>
+        <a href="/pages/consultation.html" class="nav-link nav-doctor-only">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>রোগী পরীক্ষা ও প্রেসক্রিপশন</span>
+        </a>
+
+        <div class="nav-heading">প্রশাসন ও টিম</div>
+        <a href="/pages/doctors.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <span>চিকিৎসক ব্যবস্থাপনা</span>
+        </a>
+        <a href="/pages/volunteers.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+          <span>স্বেচ্ছাসেবক ব্যবস্থাপনা</span>
+        </a>
+        <a href="/pages/reports.html" class="nav-link">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>রিপোর্ট ও এক্সপোর্ট</span>
+        </a>
+      </nav>
+
+      <div style="margin-top: auto; padding: 16px; border-top: 1px solid var(--border-color);">
+        <button id="logout-btn" class="btn btn-outline btn-block" style="color: var(--danger);">
+          লগআউট (Logout)
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="top-header">
+        <div class="brand-section">
+          <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span style="font-weight:700; font-size:1.1rem; color:var(--text-main);">চিকিৎসক ব্যবস্থাপনা (Doctor Management)</span>
+        </div>
+
+        <div class="header-user-section">
+          <div class="user-badge">
+            <div class="user-info-text">
+              <span id="header-user-name" class="user-name">ব্যবহারকারী</span>
+              <span id="header-user-role" class="user-role">রোল</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-container">
+        <!-- Page Title Bar -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h1 style="font-size:1.6rem; color:var(--text-main); font-weight:700;">চিকিৎসক প্রোফাইল ও টিম</h1>
+            <p style="color:var(--text-muted); font-size:0.95rem;">স্বাস্থ্য ক্যাম্পে বিশেষজ্ঞ চিকিৎসক যুক্তকরণ, রোগ বিশেষজ্ঞতা ও ক্যাম্প অ্যাসাইনমেন্ট</p>
+          </div>
+          <div>
+            <button id="open-add-doctor-btn" onclick="openModal('add-doctor-modal')" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px; padding:10px 18px; font-weight:600;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              নতুন চিকিৎসক যুক্ত করুন
+            </button>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="card" style="margin-bottom:16px; padding:12px 16px;">
+          <div style="display:flex; gap:12px; align-items:center;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="doctor-search-input" class="form-control" placeholder="চিকিৎসকের নাম, বিশেষজ্ঞতা বা ফোন নম্বর দিয়ে খুঁজুন..." style="border:none; box-shadow:none; padding:6px 0;">
+          </div>
+        </div>
+
+        <!-- Doctor List Table -->
+        <div class="card">
+          <div class="card-body" style="padding:0;">
+            <div class="table-responsive">
+              <table class="table">
+                <thead>
+                  <tr>
+                    <th>ছবি ও চিকিৎসকের নাম</th>
+                    <th>কোন ধরণের শিশু রোগী দেখেন</th>
+                    <th>মোবাইল নম্বর</th>
+                    <th>নির্ধারিত স্বাস্থ্য ক্যাম্প</th>
+                    <th>মোট রোগী</th>
+                    <th>অনন্য শিশু</th>
+                    <th>স্ট্যাটাস</th>
+                    <th>অ্যাকশন</th>
+                  </tr>
+                </thead>
+                <tbody id="doctors-table-body">
+                  <tr>
+                    <td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">
+                      তথ্য লোড হচ্ছে...
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Add Doctor Modal -->
+  <div id="add-doctor-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 580px;">
+      <div class="modal-header">
+        <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary);"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          নতুন চিকিৎসক যুক্ত করুন
+        </h3>
+        <button type="button" class="modal-close" onclick="closeModal('add-doctor-modal')" style="background:none; border:none; font-size:1.6rem; line-height:1; cursor:pointer; color:var(--text-muted); padding:4px 8px;" title="বন্ধ করুন">&times;</button>
+      </div>
+
+      <form id="add-doctor-form">
+        <div class="modal-body">
+          <!-- 1. Profile Photo Upload Area -->
+          <div class="form-group">
+            <label class="form-label">চিকিৎসকের প্রোফাইল ছবি (Profile Photo)</label>
+            <div class="avatar-upload-container">
+              <div class="avatar-preview-box" id="avatar-preview-box">
+                <svg id="avatar-default-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#94a3b8;"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+                <img id="avatar-preview-img" style="display:none;" alt="Doctor Preview">
+              </div>
+              <div class="avatar-upload-info">
+                <input type="file" id="doctor-photo-input" accept="image/*" style="display:none;">
+                <button type="button" class="btn btn-outline" style="padding:6px 14px; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;" onclick="document.getElementById('doctor-photo-input').click();">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                  গ্যালারি থেকে ছবি নির্বাচন
+                </button>
+                <div id="photo-status-badge" style="margin-top:6px; font-size:0.8rem; color:var(--text-muted);">
+                  ছবি স্বয়ংক্রিয়ভাবে ১ MB এর নিচে কম্প্রেস হয়ে ক্লাউডে সংরক্ষিত হবে
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. Doctor Name -->
+          <div class="form-group">
+            <label class="form-label required">চিকিৎসকের পূর্ণ নাম (Doctor Name)</label>
+            <input type="text" id="doc-name" name="fullName" class="form-control" placeholder="যেমন: ডা. ফারহানা হক" required>
+          </div>
+
+          <!-- 3. Category / Type of Child Patients Seen -->
+          <div class="form-group">
+            <label class="form-label required">কোন ধরণের শিশু রোগী দেখবেন (Patient Category / Specialty)</label>
+            <select id="doc-specialty-preset" class="form-control" style="margin-bottom:8px;">
+              <option value="সাধারণ শিশু রোগ (জ্বর, সর্দি, কাশি, সাধারণ ইনফেকশন)">সাধারণ শিশু রোগ (জ্বর, সর্দি, কাশি, সাধারণ ইনফেকশন)</option>
+              <option value="নবজাতক ও শিশু বিশেষজ্ঞ (Newborn & Child Specialist)">নবজাতক ও শিশু বিশেষজ্ঞ (Newborn & Child Specialist)</option>
+              <option value="শিশু পুষ্টি, ওজনহীনতা ও শারীরিক বৃদ্ধি">শিশু পুষ্টি, ওজনহীনতা ও শারীরিক বৃদ্ধি</option>
+              <option value="শিশু শ্বাসকষ্ট, নিউমোনিয়া ও এলার্জি">শিশু শ্বাসকষ্ট, নিউমোনিয়া ও এলার্জি</option>
+              <option value="শিশু বিকাশ ও মানসিক স্নায়ুরোগ">শিশু বিকাশ ও মানসিক স্নায়ুরোগ</option>
+              <option value="শিশু চর্মরোগ (Pediatric Dermatology)">শিশু চর্মরোগ (Pediatric Dermatology)</option>
+              <option value="শিশু পেটের সমস্যা ও গ্যাস্ট্রো">শিশু পেটের সমস্যা ও গ্যাস্ট্রো</option>
+              <option value="custom">অন্যান্য (নিজের মতো কাস্টম লিখুন)...</option>
+            </select>
+            <input type="text" id="doc-specialty" name="specialty" class="form-control" placeholder="যেমন: সাধারণ শিশু রোগ" value="সাধারণ শিশু রোগ (জ্বর, সর্দি, কাশি, সাধারণ ইনফেকশন)" required>
+          </div>
+
+          <!-- 4. Phone Number -->
+          <div class="form-group">
+            <label class="form-label required">মোবাইল নম্বর (Mobile Number)</label>
+            <input type="tel" id="doc-phone" name="phone" class="form-control" placeholder="যেমন: ০১XXXXXXXXX" required>
+          </div>
+
+          <!-- 5. Assigned Health Camp -->
+          <div class="form-group">
+            <label class="form-label">নির্ধারিত স্বাস্থ্য ক্যাম্প (Assigned Health Camp)</label>
+            <select id="doc-assigned-camp" name="assignedCampId" class="form-control">
+              <option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>
+            </select>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-top:4px;">চিকিৎসককে যেকোনো সক্রিয় স্বাস্থ্য ক্যাম্পের সাথে সরাসরি যুক্ত করা যাবে</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" onclick="closeModal('add-doctor-modal')" class="btn btn-outline">বাতিল</button>
+          <button type="submit" id="save-doctor-btn" class="btn btn-primary" style="display:inline-flex; align-items:center; gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            <span>চিকিৎসক সংরক্ষণ করুন</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Change Camp Assignment Modal -->
+  <div id="assign-camp-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width: 480px;">
+      <div class="modal-header">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-main);">ক্যাম্প অ্যাসাইনমেন্ট পরিবর্তন</h3>
+        <button type="button" class="modal-close" onclick="closeModal('assign-camp-modal')" style="background:none; border:none; font-size:1.6rem; cursor:pointer;">&times;</button>
+      </div>
+      <form id="assign-camp-form">
+        <input type="hidden" id="assign-doctor-id">
+        <div class="modal-body">
+          <div style="margin-bottom:12px; font-weight:600; color:var(--primary);" id="assign-doctor-name"></div>
+          <div class="form-group">
+            <label class="form-label required">স্বাস্থ্য ক্যাম্প নির্বাচন করুন</label>
+            <select id="reassign-camp-select" class="form-control" required>
+              <option value="">-- ক্যাম্প নির্বাচন করুন --</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" onclick="closeModal('assign-camp-modal')" class="btn btn-outline">বাতিল</button>
+          <button type="submit" class="btn btn-primary">ক্যাম্প নিশ্চিত করুন</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script>
+    // Modal helpers - globally exposed immediately
+    window.openModal = function(id) {
+      const modal = typeof id === 'string' ? document.getElementById(id) : id;
+      if (modal) {
+        modal.classList.add('active');
+        modal.style.display = 'flex';
+      }
+    };
+
+    window.closeModal = function(id) {
+      const modal = typeof id === 'string' ? document.getElementById(id) : id;
+      if (modal) {
+        modal.classList.remove('active');
+        modal.style.display = 'none';
+      }
+    };
+
+    let allDoctors = [];
+    let allCamps = [];
+    let selectedImageFile = null;
+
+    // Fast Canvas Image Compressor: Guarantee image < 1 MB
+    async function compressImageTo1MB(file) {
+      if (!file) return null;
+      if (file.size <= 1024 * 1024 && file.type === 'image/jpeg') {
+        return file;
+      }
+
+      return new Promise((resolve) => {
+        const img = new Image();
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            let width = img.width;
+            let height = img.height;
+
+            // Maximum dimension cap 1600px
+            const maxDimension = 1600;
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            let quality = 0.85;
+            function tryCompress() {
+              canvas.toBlob((blob) => {
+                if (!blob) {
+                  return resolve(file);
+                }
+                // Under 1 MB (1048576 bytes) or quality reached minimum limit
+                if (blob.size <= 1024 * 1024 || quality <= 0.3) {
+                  const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  });
+                  resolve(compressedFile);
+                } else {
+                  quality -= 0.15;
+                  tryCompress();
+                }
+              }, 'image/jpeg', quality);
+            }
+
+            tryCompress();
+          };
+          img.onerror = () => resolve(file);
+          img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(file);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const user = await checkAuth(['SUPER_ADMIN']);
+      if (!user) return;
+
+      const openBtn = document.getElementById('open-add-doctor-btn');
+      if (openBtn) {
+        openBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          window.openModal('add-doctor-modal');
+        });
+      }
+
+      // Close modal on backdrop click
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) {
+            window.closeModal(overlay.id);
+          }
+        });
+      });
+
+      // Load doctors and active camps in parallel
+      await Promise.all([loadDoctors(), loadCamps()]);
+
+      // Specialty preset selector handling
+      const specialtySelect = document.getElementById('doc-specialty-preset');
+      const specialtyInput = document.getElementById('doc-specialty');
+      specialtySelect.addEventListener('change', (e) => {
+        if (e.target.value === 'custom') {
+          specialtyInput.value = '';
+          specialtyInput.focus();
+        } else {
+          specialtyInput.value = e.target.value;
+        }
+      });
+
+      // Gallery Image Picker handling with preview & client-side compression
+      const photoInput = document.getElementById('doctor-photo-input');
+      const avatarPreviewImg = document.getElementById('avatar-preview-img');
+      const avatarDefaultIcon = document.getElementById('avatar-default-icon');
+      const photoStatusBadge = document.getElementById('photo-status-badge');
+
+      photoInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        photoStatusBadge.innerHTML = `<span style="color:var(--primary);">ছবি প্রসেস করা হচ্ছে...</span>`;
+
+        try {
+          const compressed = await compressImageTo1MB(file);
+          selectedImageFile = compressed;
+
+          const sizeKb = Math.round(compressed.size / 1024);
+          const sizeText = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb} KB`;
+
+          const objectUrl = URL.createObjectURL(compressed);
+          avatarPreviewImg.src = objectUrl;
+          avatarPreviewImg.style.display = 'block';
+          avatarDefaultIcon.style.display = 'none';
+
+          photoStatusBadge.innerHTML = `
+            <span style="color:#166534; font-weight:600;">✓ প্রস্তুত: ${toBanglaNumber(sizeText)} (১ MB এর নিচে)</span>
+          `;
+        } catch (err) {
+          photoStatusBadge.innerHTML = `<span style="color:var(--danger);">ছবি প্রক্রিয়া করতে সমস্যা হয়েছে</span>`;
+        }
+      });
+
+      // Search Filter
+      document.getElementById('doctor-search-input').addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        renderDoctorsTable(filterDoctors(query));
+      });
+
+      // Add Doctor Form Submit
+      const form = document.getElementById('add-doctor-form');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('save-doctor-btn');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = `<span>সংরক্ষণ হচ্ছে...</span>`;
+
+        try {
+          const fullName = document.getElementById('doc-name').value.trim();
+          const specialty = document.getElementById('doc-specialty').value.trim();
+          const phone = document.getElementById('doc-phone').value.trim();
+          const assignedCampId = document.getElementById('doc-assigned-camp').value || null;
+
+          let photoUrl = '';
+          let profileImageAssetId = null;
+
+          // If photo selected, upload fast to server and sync ImgBB
+          if (selectedImageFile) {
+            submitBtn.innerHTML = `<span>ছবি আপলোড হচ্ছে...</span>`;
+            const formData = new FormData();
+            formData.append('image', selectedImageFile);
+            formData.append('category', 'DOCTOR_PROFILE');
+
+            const uploadRes = await apiFetch('/api/images/upload', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (uploadRes && uploadRes.success && uploadRes.data) {
+              photoUrl = uploadRes.data.url;
+              profileImageAssetId = uploadRes.data.assetId;
+            }
+          }
+
+          submitBtn.innerHTML = `<span>চিকিৎসক যুক্ত হচ্ছে...</span>`;
+
+          const body = {
+            fullName,
+            specialty,
+            phone,
+            assignedCampId,
+            photoUrl,
+            profileImageAssetId
+          };
+
+          const res = await apiFetch('/api/doctors', {
+            method: 'POST',
+            body: JSON.stringify(body)
+          });
+
+          if (res && res.success) {
+            showToast('চিকিৎসক প্রোফাইল সফলভাবে তৈরি হয়েছে', 'success');
+            window.closeModal('add-doctor-modal');
+            form.reset();
+            selectedImageFile = null;
+            avatarPreviewImg.style.display = 'none';
+            avatarDefaultIcon.style.display = 'block';
+            photoStatusBadge.innerText = 'ছবি স্বয়ংক্রিয়ভাবে ১ MB এর নিচে কম্প্রেস হয়ে ক্লাউডে সংরক্ষিত হবে';
+            await loadDoctors();
+          }
+        } catch (err) {
+          showToast(err.message || 'চিকিৎসক যুক্ত করা যায়নি', 'error');
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalText;
+        }
+      });
+
+      // Assign / Reassign Camp Form Submit
+      const assignForm = document.getElementById('assign-camp-form');
+      assignForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const doctorId = document.getElementById('assign-doctor-id').value;
+        const assignedCampId = document.getElementById('reassign-camp-select').value;
+
+        try {
+          const res = await apiFetch(`/api/doctors/${doctorId}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ assignedCampId: assignedCampId || null })
+          });
+          if (res && res.success) {
+            showToast('ক্যাম্প অ্যাসাইনমেন্ট আপডেট করা হয়েছে', 'success');
+            window.closeModal('assign-camp-modal');
+            await loadDoctors();
+          }
+        } catch (err) {
+          showToast(err.message || 'ক্যাম্প আপডেট ব্যর্থ হয়েছে', 'error');
+        }
+      });
+    });
+
+    async function loadCamps() {
+      try {
+        const res = await apiFetch('/api/camps?limit=100');
+        if (res && res.success) {
+          allCamps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+          populateCampDropdowns();
+        }
+      } catch (err) {
+        console.error('Failed to load camps', err);
+      }
+    }
+
+    function populateCampDropdowns() {
+      const campSelect = document.getElementById('doc-assigned-camp');
+      const reassignSelect = document.getElementById('reassign-camp-select');
+
+      const activeCamps = allCamps.filter(c => c.status === 'ACTIVE');
+
+      let optionsHtml = '';
+      if (activeCamps.length === 0) {
+        optionsHtml = '<option value="">-- কোনো চালু ক্যাম্প নেই (প্রথমে ক্যাম্প চালু করুন) --</option>';
+      } else {
+        optionsHtml = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (শুধুমাত্র চালু ক্যাম্প) --</option>' +
+          activeCamps.map(c => `<option value="${c._id}">🟢 ${c.name}</option>`).join('');
+      }
+
+      if (campSelect) campSelect.innerHTML = optionsHtml;
+      if (reassignSelect) {
+        reassignSelect.innerHTML = '<option value="">-- ক্যাম্প অ্যাসাইনমেন্ট বাতিল করুন --</option>' + 
+          activeCamps.map(c => `<option value="${c._id}">🟢 ${c.name}</option>`).join('');
+      }
+    }
+
+    async function loadDoctors() {
+      const tbody = document.getElementById('doctors-table-body');
+      try {
+        const res = await apiFetch('/api/doctors');
+        if (res && res.success) {
+          allDoctors = res.data || [];
+          renderDoctorsTable(allDoctors);
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--danger);">${err.message}</td></tr>`;
+      }
+    }
+
+    function filterDoctors(query) {
+      if (!query) return allDoctors;
+      return allDoctors.filter(d => {
+        const name = (d.fullName || '').toLowerCase();
+        const specialty = (d.specialty || '').toLowerCase();
+        const phone = (d.phone || '').toLowerCase();
+        const camp = (d.assignedCamp?.name || d.assignedCamp?.campCode || '').toLowerCase();
+        return name.includes(query) || specialty.includes(query) || phone.includes(query) || camp.includes(query);
+      });
+    }
+
+    function renderDoctorsTable(doctors) {
+      const tbody = document.getElementById('doctors-table-body');
+      if (!doctors || doctors.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:30px; color:var(--text-muted);">কোনো চিকিৎসক পাওয়া যায়নি</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = doctors.map(d => {
+        const stats = d.stats || {};
+        const camp = d.assignedCamp;
+        const initial = (d.fullName || 'ড').replace(/^ডা\.\s*/, '').trim().charAt(0) || 'ড';
+        const photoUrl = d.displayPhoto;
+
+        const avatarHtml = photoUrl
+          ? `<img src="${photoUrl}" alt="${d.fullName}" class="doctor-avatar-circle" onerror="this.onerror=null; this.src='/assets/logo.png';">`
+          : `<div class="doctor-avatar-placeholder">${initial}</div>`;
+
+        const campHtml = camp
+          ? `<span class="camp-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg> ${camp.campCode} - ${camp.name}</span>`
+          : `<span class="camp-badge none">অ্যাসাইন করা হয়নি</span>`;
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:12px;">
+                ${avatarHtml}
+                <div>
+                  <div style="font-weight:700; color:var(--text-main); font-size:0.95rem;">${d.fullName}</div>
+                  <div style="font-size:0.8rem; color:var(--text-muted);">${d.designation || 'মেডিকেল অফিসার'}</div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <span class="specialty-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+                ${d.specialty || 'সাধারণ শিশু রোগ'}
+              </span>
+            </td>
+            <td>
+              <div style="font-weight:600; color:var(--text-main); font-family:monospace; font-size:0.92rem;">
+                ${d.phone ? toBanglaNumber(d.phone) : '<span style="color:var(--text-muted);">দেওয়া হয়নি</span>'}
+              </div>
+            </td>
+            <td>${campHtml}</td>
+            <td><b>${toBanglaNumber(stats.totalConsultations || 0)}</b> জন</td>
+            <td><b>${toBanglaNumber(stats.uniquePatientsSeen || 0)}</b> জন</td>
+            <td><span class="status-badge active">${d.accountStatus === 'ACTIVE' ? 'সক্রিয়' : 'নিষ্ক্রিয়'}</span></td>
+            <td>
+              <button type="button" class="btn btn-outline" style="padding:4px 10px; font-size:0.82rem;" onclick="openAssignCampModal('${d._id}', '${escapeHtml(d.fullName)}', '${camp ? camp._id : ''}')">
+                ক্যাম্প পরিবর্তন
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function openAssignCampModal(doctorId, doctorName, currentCampId) {
+      document.getElementById('assign-doctor-id').value = doctorId;
+      document.getElementById('assign-doctor-name').innerText = `চিকিৎসক: ${doctorName}`;
+      document.getElementById('reassign-camp-select').value = currentCampId || '';
+      window.openModal('assign-camp-modal');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <title>রিডাইরেক্ট হচ্ছে - স্বাস্থ্য ক্যাম্প অ্যানালিটিক্স</title>
+  <script>
+    // Redirect directly to the unified Health Camps & Analytics page
+    const urlParams = new URLSearchParams(window.location.search);
+    const campId = urlParams.get('campId');
+    if (campId) {
+      window.location.replace('/pages/camps.html?campId=' + encodeURIComponent(campId));
+    } else {
+      window.location.replace('/pages/camps.html');
+    }
+  </script>
+</head>
+<body style="font-family: sans-serif; text-align: center; padding-top: 50px; color: #475569;">
+  <p>ক্যাম্প অ্যানালিটিক্স পেজে নিয়ে যাওয়া হচ্ছে...</p>
+</body>
+</html>

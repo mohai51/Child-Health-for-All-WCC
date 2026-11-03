@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>চিকিৎসক কর্নার: রোগী সার্চ ও প্রেসক্রিপশন - WCC শিশু স্বাস্থ্য রেজিস্ট্রি</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+  <style>
+    /* Strict Doctor-Only Interface Styling */
+    .nav-admin-only, .nav-volunteer-only {
+      display: none !important;
+    }
+    .upload-zone {
+      border: 2px dashed var(--primary);
+      background: #F8FAFC;
+      border-radius: var(--radius-md);
+      padding: 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .upload-zone:hover {
+      background: #EFF6FF;
+      border-color: #2563EB;
+    }
+    .upload-preview-container {
+      margin-top: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .preview-thumbnail {
+      max-width: 280px;
+      max-height: 280px;
+      border-radius: var(--radius-sm);
+      border: 2px solid var(--border-color);
+      box-shadow: var(--shadow-sm);
+      object-fit: contain;
+      background: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Doctor Sidebar: strictly patient search and logout -->
+    <aside class="sidebar">
+      <div style="padding: 16px; border-bottom: 1px solid var(--border-color); display:flex; align-items:center; gap:12px;">
+        <div class="brand-logo-badge">
+          <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
+        </div>
+        <div>
+          <div class="brand-title">উই ক্যান চেঞ্জ</div>
+          <div class="brand-subtitle">চিকিৎসক কর্নার</div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-heading">প্রধান কাজ</div>
+        <a href="/pages/consultation.html" class="nav-link active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+            <circle cx="11" cy="11" r="8"/>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>রোগী সার্চ ও প্রেসক্রিপশন</span>
+        </a>
+      </nav>
+
+      <div style="margin-top: auto; padding: 16px; border-top: 1px solid var(--border-color);">
+        <button id="logout-btn" class="btn btn-outline btn-block" style="color: var(--danger); display:flex; align-items:center; justify-content:center; gap:8px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          <span>লগআউট</span>
+        </button>
+      </div>
+    </aside>
+
+    <div class="main-content">
+      <header class="top-header">
+        <div class="brand-section">
+          <button class="mobile-menu-toggle" aria-label="Toggle menu">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          </button>
+          <span style="font-weight:700; font-size:1.15rem; color:var(--primary); display:flex; align-items:center; gap:8px;">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+            </svg>
+            চিকিৎসক কর্নার: রোগী সার্চ ও প্রেসক্রিপশন আপলোড
+          </span>
+        </div>
+
+        <div class="header-user-section">
+          <div class="user-badge">
+            <div class="user-info-text">
+              <span id="header-user-name" class="user-name">ডা. ফারহানা রহমান</span>
+              <span id="header-user-role" class="user-role">চিকিৎসক (Doctor)</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="page-container" style="max-width: 960px; margin: 0 auto;">
+        
+        <!-- Streamlined Search Card -->
+        <div class="card" style="margin-bottom: 24px; box-shadow: var(--shadow-sm); border: 1px solid var(--border-color);">
+          <div class="card-body">
+            <div style="display:grid; grid-template-columns: 1fr 2.2fr; gap:16px; align-items:flex-end;">
+              
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label required" for="doctor-camp-select" style="font-weight:600; font-size:0.95rem;">
+                  স্বাস্থ্য ক্যাম্প:
+                </label>
+                <select id="doctor-camp-select" class="form-control" style="font-weight:600;"></select>
+              </div>
+
+              <div class="form-group" style="margin-bottom:0;">
+                <label class="form-label required" for="doctor-patient-id-input" style="font-size:1rem; font-weight:700; color:var(--primary);">
+                  রোগী সার্চ করুন (Patient ID বা মোবাইল নম্বর):
+                </label>
+                <div style="display:flex; gap:10px;">
+                  <input type="text" id="doctor-patient-id-input" class="form-control" placeholder="যেমন: WCC-000001 বা ফোন নম্বর" style="font-size:1.15rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px;" autofocus>
+                  <button type="button" id="search-patient-btn" class="btn btn-primary btn-lg" style="white-space:nowrap; display:flex; align-items:center; gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="11" cy="11" r="8"/>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                    </svg>
+                    <span>রোগী খুঁজুন</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Unified Patient Verification & Prescription Upload Section -->
+        <div id="patient-consultation-section" style="display:none;">
+          
+          <!-- Patient Details Box -->
+          <div class="card" style="margin-bottom: 20px; border-left: 5px solid var(--primary);">
+            <div class="card-header" style="background:var(--primary-light); display:flex; align-items:center; justify-content:space-between;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span class="card-title" style="color:var(--primary); font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                  রোগীর তথ্য (Patient Details)
+                </span>
+                <span class="badge-counter" style="background:white; font-weight:700; font-size:0.9rem; padding:4px 10px; border-radius:12px; border:1px solid var(--border-color);">
+                  টোকেন নম্বর: #<span id="pv-token">-</span>
+                </span>
+              </div>
+              <div style="font-size:1.2rem; font-weight:800; color:var(--primary); font-family:monospace;" id="pv-id">WCC-000000</div>
+            </div>
+
+            <div class="card-body">
+              <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:14px;">
+                <div>
+                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">রোগীর নাম:</span>
+                  <div id="pv-name" style="font-size:1.2rem; font-weight:700; color:var(--text-main);">-</div>
+                </div>
+                <div>
+                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">বয়স ও লিঙ্গ:</span>
+                  <div id="pv-age-sex" style="font-size:1.05rem; font-weight:600; color:var(--text-main);">-</div>
+                </div>
+                <div>
+                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">অভিভাবক ও যোগাযোগ:</span>
+                  <div id="pv-guardian" style="font-size:1rem; font-weight:600; color:var(--text-main);">-</div>
+                </div>
+                <div>
+                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">শারীরিক মাপ (Vitals):</span>
+                  <div id="pv-vitals" style="font-size:1rem; font-weight:700; color:var(--primary);">-</div>
+                </div>
+              </div>
+
+              <div style="background:#F8FAFC; border:1px solid var(--border-color); padding:10px 14px; border-radius:6px;">
+                <b style="color:var(--text-main);">প্রধান অভিযোগ:</b> 
+                <span id="pv-complaint" style="color:var(--danger); font-weight:600; margin-left:6px;">-</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Prescription Image Upload Card -->
+          <div class="card" style="border: 2px solid #10B981; box-shadow: var(--shadow-md);">
+            <div class="card-header" style="background:#ECFDF5; border-bottom:1px solid #A7F3D0;">
+              <span class="card-title" style="color:#065F46; font-size:1.15rem; font-weight:700; display:flex; align-items:center; gap:8px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                প্রেসক্রিপশন ছবি আপলোড (Upload Prescription Image)
+              </span>
+            </div>
+
+            <div class="card-body">
+              <!-- Single Action: Only Take Photo via Camera -->
+              <div id="capture-actions-container" style="margin-bottom:16px;">
+                <button type="button" id="open-camera-btn" class="btn btn-primary btn-block btn-lg" style="padding:16px; font-size:1.15rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px; background:linear-gradient(135deg, #0F4C81, #1E3A8A); border:none; box-shadow:0 4px 14px rgba(15,76,129,0.25); border-radius:var(--radius-md); cursor:pointer;">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                    <circle cx="12" cy="13" r="4"/>
+                  </svg>
+                  <span>ক্যামেরা দিয়ে প্রেসক্রিপশনের ছবি তুলুন</span>
+                </button>
+
+                <!-- Hidden camera fallback for devices without WebRTC -->
+                <input type="file" id="prescription-photo-input" accept="image/*" capture="environment" style="display:none;">
+              </div>
+
+              <!-- Live Camera Viewfinder (Hidden by default) -->
+              <div id="live-camera-section" style="display:none; background:#0F172A; border-radius:var(--radius-md); padding:16px; margin-bottom:16px; text-align:center;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; color:white;">
+                  <span style="font-weight:700; font-size:0.95rem; display:flex; align-items:center; gap:8px;">
+                    <span style="width:10px; height:10px; background:#EF4444; border-radius:50%; display:inline-block;"></span>
+                    লাইভ ক্যামেরা ভিউফাইন্ডার
+                  </span>
+                  <div style="display:flex; gap:8px;">
+                    <button type="button" id="switch-camera-btn" class="btn btn-sm btn-outline" style="color:white; border-color:rgba(255,255,255,0.4); font-size:0.8rem; display:none;">
+                      ক্যামেরা পরিবর্তন
+                    </button>
+                    <button type="button" id="close-camera-btn" class="btn btn-sm btn-outline" style="color:#FCA5A5; border-color:#EF4444; font-size:0.8rem;">
+                      বন্ধ করুন
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Video Viewport -->
+                <div style="position:relative; width:100%; max-width:520px; margin:0 auto; background:black; border-radius:8px; overflow:hidden; aspect-ratio:4/3; display:flex; align-items:center; justify-content:center;">
+                  <video id="camera-video" autoplay playsinline style="width:100%; height:100%; object-fit:cover;"></video>
+                  <canvas id="camera-canvas" style="display:none;"></canvas>
+                  
+                  <!-- Guide Overlay -->
+                  <div style="position:absolute; inset:16px; border:2px dashed rgba(255,255,255,0.6); border-radius:6px; pointer-events:none; display:flex; align-items:flex-end; justify-content:center; padding-bottom:8px;">
+                    <span style="background:rgba(0,0,0,0.65); color:white; font-size:0.75rem; padding:3px 10px; border-radius:4px;">প্রেসক্রিপশনটি ফ্রেমের মাঝে রাখুন</span>
+                  </div>
+                </div>
+
+                <!-- Snapshot Button -->
+                <div style="margin-top:14px;">
+                  <button type="button" id="snap-photo-btn" class="btn btn-success btn-lg" style="padding:12px 28px; font-size:1.1rem; font-weight:700; border-radius:30px; box-shadow:0 4px 14px rgba(16,185,129,0.4); display:inline-flex; align-items:center; gap:8px;">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                      <circle cx="12" cy="12" r="9"/>
+                      <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                    </svg>
+                    <span>ছবি তুলুন (Click Photo)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Upload Status & Preview Container -->
+              <div id="upload-status-box" style="margin-top:14px; text-align:center;">
+                <div id="prescription-upload-status" style="font-weight:600; font-size:0.95rem; min-height:24px;"></div>
+                <div id="prescription-preview-box" class="upload-preview-container"></div>
+              </div>
+
+              <!-- Optional short note if doctor wishes -->
+              <div class="form-group" style="margin-top:16px; margin-bottom:20px;">
+                <label class="form-label" for="doctor-short-note" style="font-size:0.9rem; color:var(--text-muted);">
+                  রোগ নির্ণয় বা সংক্ষিপ্ত মন্তব্য (ঐচ্ছিক):
+                </label>
+                <input type="text" id="doctor-short-note" class="form-control" placeholder="যেমন: সাধারণ জ্বর ও সর্দি (না লিখলেও চলবে)">
+              </div>
+
+              <!-- Big Save Button -->
+              <button type="button" id="save-consultation-btn" class="btn btn-success btn-lg btn-block" style="padding:16px; font-size:1.2rem; font-weight:700; display:flex; align-items:center; justify-content:center; gap:10px;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>প্রেসক্রিপশন আপলোড ও সম্পন্ন করুন</span>
+              </button>
+            </div>
+          </div>
+
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script src="/js/auth.js"></script>
+  <script src="/js/consultations.js"></script>
+</body>
+</html>

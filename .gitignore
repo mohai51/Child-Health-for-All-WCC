@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment and sensitive keys
+.env
+.env.*
+!.env.example
+backend/.env
+backend/.env.*
+!backend/.env.example
+*.env
+
+# Uploads and temporary files
+uploads/
+scratch/
+*.pdf
+
+# Logs
+*.log
+npm-debug.log*
+
+# System and editor files
+.DS_Store
+dist/
+coverage/
+.vscode/

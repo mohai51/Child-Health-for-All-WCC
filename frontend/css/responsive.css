@@ -1,0 +1,137 @@
+/* Responsive & Print Styles */
+
+.mobile-menu-toggle {
+  display: none;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--text-main);
+}
+
+.mobile-menu-toggle svg {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 992px) {
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 45;
+  }
+
+  .sidebar-backdrop.active {
+    display: block;
+  }
+
+  .mobile-menu-toggle {
+    display: block;
+  }
+
+  .page-container {
+    padding: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .stat-value {
+    font-size: 1.3rem;
+  }
+
+  .camps-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 576px) {
+  .top-header {
+    padding: 0 16px;
+  }
+
+  .brand-title {
+    font-size: 1rem;
+  }
+
+  .brand-subtitle {
+    display: none;
+  }
+
+  .user-info-text {
+    display: none;
+  }
+
+  .user-badge {
+    padding: 4px 8px;
+  }
+
+  .slip-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Offline Banner */
+#offline-banner {
+  display: none;
+  background-color: #B91C1C;
+  color: white;
+  text-align: center;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+#offline-banner.visible {
+  display: block;
+}
+
+/* Print Styles for Patient ID Slip */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  .patient-slip, .patient-slip * {
+    visibility: visible;
+  }
+
+  .patient-slip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    border: 2px solid #000;
+    padding: 20px;
+    margin: 0;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

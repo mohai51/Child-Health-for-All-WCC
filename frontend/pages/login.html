@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>লগইন - WCC শিশু স্বাস্থ্য রেজিস্ট্রি</title>
+  <link rel="stylesheet" href="/css/global.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body style="display:flex; align-items:center; justify-content:center; min-height:100vh; background: var(--bg-main); padding: 20px;">
+  <div style="width: 100%; max-width: 460px; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); padding: 32px 28px;">
+    
+    <div style="text-align: center; margin-bottom: 20px;">
+      <div class="brand-logo-badge" style="width: 76px; height: 76px; margin: 0 auto 12px; border: 3px solid var(--wcc-gold);">
+        <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
+      </div>
+      <h1 style="color: var(--primary); font-size: 1.5rem; font-weight:700;">উই ক্যান চেঞ্জ (WCC)</h1>
+      <p style="color: var(--text-muted); font-size: 0.9rem;">শিশু স্বাস্থ্য রেজিস্ট্রি ও মাল্টি-ক্যাম্প পোর্টাল</p>
+    </div>
+
+    <!-- 1-Click Fast Access Section (Prominent at Top) -->
+    <div style="margin-bottom: 24px; padding: 16px; background: #F8FAFC; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 12px;">
+        <span style="font-weight: 700; color: var(--primary); font-size: 0.95rem;">১-ক্লিকে সরাসরি ড্যাশবোর্ডে প্রবেশ</span>
+        <span style="font-size:0.75rem; color:#1E7E34; background:rgba(30,126,52,0.12); padding:3px 10px; border-radius:12px; font-weight:700;">লগইন বাইপাস সক্রিয়</span>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px;">
+        <!-- Super Admin 1-Click -->
+        <a href="/pages/dashboard.html" onclick="bypassLoginDirect('SUPER_ADMIN');" class="btn btn-outline btn-block" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; text-align:left; border-color:var(--primary); cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:6px; background:rgba(15,76,129,0.12); color:var(--primary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-main);">সুপার অ্যাডমিন ড্যাশবোর্ড</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">ক্যাম্প তৈরি, বন্ধ, চিকিৎসক ও ভলান্টিয়ার নিয়ন্ত্রণ</div>
+            </div>
+          </div>
+          <span style="font-size:1.1rem; font-weight:700; color:var(--primary);">&rarr;</span>
+        </a>
+
+        <!-- Doctor 1-Click -->
+        <a href="/pages/consultation.html" onclick="bypassLoginDirect('DOCTOR');" class="btn btn-outline btn-block" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; text-align:left; border-color:var(--secondary); cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:6px; background:rgba(13,148,136,0.12); color:var(--secondary); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-main);">চিকিৎসক কর্নার (ডা. ফারহানা)</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">শুধুমাত্র রোগী সার্চ ও প্রেসক্রিপশন ছবি আপলোড</div>
+            </div>
+          </div>
+          <span style="font-size:1.1rem; font-weight:700; color:var(--secondary);">&rarr;</span>
+        </a>
+
+        <!-- Volunteer 1-Click -->
+        <a href="/pages/registration.html" onclick="bypassLoginDirect('REGISTRATION_VOLUNTEER');" class="btn btn-outline btn-block" style="text-decoration:none; display:flex; align-items:center; justify-content:space-between; padding:12px 14px; text-align:left; border-color:var(--wcc-green); cursor:pointer;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <div style="width:34px; height:34px; border-radius:6px; background:rgba(30,126,52,0.12); color:var(--wcc-green); display:flex; align-items:center; justify-content:center; flex-shrink:0;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:0.92rem; color:var(--text-main);">রোগী নিবন্ধন ডেস্ক (ভলান্টিয়ার)</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">নতুন শিশু রোগী রেজিস্ট্রি ও স্লিপ তৈরি</div>
+            </div>
+          </div>
+          <span style="font-size:1.1rem; font-weight:700; color:var(--wcc-green);">&rarr;</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div style="display:flex; align-items:center; gap:10px; margin: 20px 0; color:var(--text-light); font-size:0.8rem;">
+      <div style="flex:1; height:1px; background:var(--border-color);"></div>
+      <span>বা সাধারণ লগইন ফর্ম</span>
+      <div style="flex:1; height:1px; background:var(--border-color);"></div>
+    </div>
+
+    <form id="login-form">
+      <div class="form-group">
+        <label class="form-label" for="email">ইমেইল বা লগইন আইডি</label>
+        <input type="email" id="email" class="form-control" placeholder="যেমন: admin@wcc.org.bd" value="admin@wcc.org.bd">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">পাসওয়ার্ড</label>
+        <input type="password" id="password" class="form-control" placeholder="••••••••" value="AdminPassword@123">
+      </div>
+
+      <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 8px;">
+        সরাসরি প্রবেশ করুন
+      </button>
+    </form>
+
+    <div style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-light);">
+      টেস্ট ও ডেভেলপমেন্ট মোড সক্রিয়
+    </div>
+  </div>
+
+  <script src="/js/api.js"></script>
+  <script>
+    function bypassLoginDirect(role) {
+      const roleUsers = {
+        SUPER_ADMIN: {
+          id: '6ae6ca6b8e6f78c4505854ae',
+          name: 'সুপার অ্যাডমিন (WCC)',
+          email: 'admin@wcc.org.bd',
+          role: 'SUPER_ADMIN'
+        },
+        DOCTOR: {
+          id: '6ae6ca6b8e6f78c4505854af',
+          name: 'ডা. ফারহানা (চিকিৎসক)',
+          email: 'dr.farhana@wcc.org.bd',
+          role: 'DOCTOR'
+        },
+        REGISTRATION_VOLUNTEER: {
+          id: '6ae6ca6b8e6f78c4505854b0',
+          name: 'ভলান্টিয়ার ১ (রেজিস্ট্রেশন)',
+          email: 'volunteer1@wcc.org.bd',
+          role: 'REGISTRATION_VOLUNTEER'
+        }
+      };
+
+      const selected = roleUsers[role] || roleUsers.SUPER_ADMIN;
+      localStorage.setItem('wcc_active_role', role);
+      localStorage.setItem('wcc_user', JSON.stringify(selected));
+
+      // Attempt background login in fire-and-forget mode to set session cookies if available
+      try {
+        const pass = role === 'DOCTOR' ? 'Doctor@123' : role === 'REGISTRATION_VOLUNTEER' ? 'Volunteer@123' : 'AdminPassword@123';
+        fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: selected.email, password: pass })
+        }).then(r => r.json()).then(d => {
+          if (d?.data?.token) localStorage.setItem('wcc_token', d.data.token);
+        }).catch(() => {});
+      } catch (e) {}
+    }
+    window.bypassLoginDirect = bypassLoginDirect;
+
+    document.getElementById('login-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      bypassLoginDirect('SUPER_ADMIN');
+      window.location.href = '/pages/dashboard.html';
+    });
+  </script>
+</body>
+</html>
