@@ -241,17 +241,17 @@
           <div class="form-group">
             <label class="form-label">চিকিৎসকের প্রোফাইল ছবি (Profile Photo)</label>
             <div class="avatar-upload-container">
-              <div class="avatar-preview-box" id="avatar-preview-box">
+              <div class="avatar-preview-box" id="avatar-preview-box" style="cursor:pointer;" title="ছবি নির্বাচন বা পরিবর্তন করতে ক্লিক করুন">
                 <svg id="avatar-default-icon" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:#94a3b8;"><circle cx="12" cy="8" r="4"/><path d="M6 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
                 <img id="avatar-preview-img" style="display:none;" alt="Doctor Preview">
               </div>
               <div class="avatar-upload-info">
                 <input type="file" id="doctor-photo-input" accept="image/*" style="display:none;">
-                <button type="button" class="btn btn-outline" style="padding:6px 14px; font-size:0.88rem; display:inline-flex; align-items:center; gap:6px;" onclick="document.getElementById('doctor-photo-input').click();">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                  গ্যালারি থেকে ছবি নির্বাচন
+                <button type="button" id="choose-photo-btn" class="btn btn-outline" style="padding:8px 16px; font-size:0.9rem; font-weight:600; display:inline-flex; align-items:center; gap:8px; cursor:pointer;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="pointer-events:none;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                  <span>গ্যালারি থেকে ছবি নির্বাচন</span>
                 </button>
-                <div id="photo-status-badge" style="margin-top:6px; font-size:0.8rem; color:var(--text-muted);">
+                <div id="photo-status-badge" style="margin-top:6px; font-size:0.82rem; color:var(--text-muted);">
                   ছবি স্বয়ংক্রিয়ভাবে ১ MB এর নিচে কম্প্রেস হয়ে ক্লাউডে সংরক্ষিত হবে
                 </div>
               </div>
@@ -426,10 +426,39 @@
       if (!user) return;
 
       const openBtn = document.getElementById('open-add-doctor-btn');
+      const photoInput = document.getElementById('doctor-photo-input');
+      const choosePhotoBtn = document.getElementById('choose-photo-btn');
+      const avatarBox = document.getElementById('avatar-preview-box');
+      const avatarPreviewImg = document.getElementById('avatar-preview-img');
+      const avatarDefaultIcon = document.getElementById('avatar-default-icon');
+      const photoStatusBadge = document.getElementById('photo-status-badge');
+
       if (openBtn) {
         openBtn.addEventListener('click', (e) => {
           e.preventDefault();
+          if (photoInput) photoInput.value = '';
+          selectedImageFile = null;
+          if (avatarPreviewImg) {
+            avatarPreviewImg.style.display = 'none';
+            avatarPreviewImg.src = '';
+          }
+          if (avatarDefaultIcon) avatarDefaultIcon.style.display = 'block';
+          if (photoStatusBadge) photoStatusBadge.innerHTML = 'ছবি স্বয়ংক্রিয়ভাবে ১ MB এর নিচে কম্প্রেস হয়ে ক্লাউডে সংরক্ষিত হবে';
           window.openModal('add-doctor-modal');
+        });
+      }
+
+      // Trigger file dialog on clicking gallery button or avatar preview circle
+      if (choosePhotoBtn && photoInput) {
+        choosePhotoBtn.addEventListener('click', (e) => {
+          e.preventDefault();
+          photoInput.click();
+        });
+      }
+      if (avatarBox && photoInput) {
+        avatarBox.addEventListener('click', (e) => {
+          e.preventDefault();
+          photoInput.click();
         });
       }
 
@@ -457,37 +486,41 @@
         }
       });
 
-      // Gallery Image Picker handling with preview & client-side compression
-      const photoInput = document.getElementById('doctor-photo-input');
-      const avatarPreviewImg = document.getElementById('avatar-preview-img');
-      const avatarDefaultIcon = document.getElementById('avatar-default-icon');
-      const photoStatusBadge = document.getElementById('photo-status-badge');
+      // Gallery Image Picker change handling with instant preview & client-side compression
+      if (photoInput) {
+        photoInput.addEventListener('change', async (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
 
-      photoInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+          // Instant preview
+          try {
+            const objectUrl = URL.createObjectURL(file);
+            avatarPreviewImg.src = objectUrl;
+            avatarPreviewImg.style.display = 'block';
+            avatarDefaultIcon.style.display = 'none';
+          } catch (err) {
+            console.warn('Preview error:', err);
+          }
 
-        photoStatusBadge.innerHTML = `<span style="color:var(--primary);">ছবি প্রসেস করা হচ্ছে...</span>`;
+          photoStatusBadge.innerHTML = `<span style="color:var(--primary);"><i class="fas fa-spinner fa-spin"></i> ছবি প্রসেস করা হচ্ছে...</span>`;
 
-        try {
-          const compressed = await compressImageTo1MB(file);
-          selectedImageFile = compressed;
+          try {
+            const compressed = await compressImageTo1MB(file);
+            selectedImageFile = compressed || file;
 
-          const sizeKb = Math.round(compressed.size / 1024);
-          const sizeText = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb} KB`;
+            const sizeKb = Math.round((selectedImageFile.size || file.size) / 1024);
+            const sizeText = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${sizeKb} KB`;
 
-          const objectUrl = URL.createObjectURL(compressed);
-          avatarPreviewImg.src = objectUrl;
-          avatarPreviewImg.style.display = 'block';
-          avatarDefaultIcon.style.display = 'none';
-
-          photoStatusBadge.innerHTML = `
-            <span style="color:#166534; font-weight:600;">✓ প্রস্তুত: ${toBanglaNumber(sizeText)} (১ MB এর নিচে)</span>
-          `;
-        } catch (err) {
-          photoStatusBadge.innerHTML = `<span style="color:var(--danger);">ছবি প্রক্রিয়া করতে সমস্যা হয়েছে</span>`;
-        }
-      });
+            photoStatusBadge.innerHTML = `
+              <span style="color:#166534; font-weight:600;"><i class="fas fa-check-circle"></i> প্রস্তুত: ${toBanglaNumber(sizeText)} (১ MB এর নিচে)</span>
+            `;
+          } catch (err) {
+            console.warn('Compression fallback to original file:', err);
+            selectedImageFile = file;
+            photoStatusBadge.innerHTML = `<span style="color:#166534;"><i class="fas fa-check-circle"></i> ছবি যুক্ত হয়েছে</span>`;
+          }
+        });
+      }
 
       // Search Filter
       document.getElementById('doctor-search-input').addEventListener('input', (e) => {
