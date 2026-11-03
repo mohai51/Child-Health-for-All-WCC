@@ -396,15 +396,16 @@
     async function loadCampsList() {
       const select = document.getElementById('report-camp-select');
       try {
-        const res = await apiFetch('/api/camps');
+        const res = await apiFetch('/api/camps', { bypassCache: true });
         if (res && res.success) {
-          if (!res.data || res.data.length === 0) {
+          const camps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+          if (!camps || camps.length === 0) {
             select.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
             return;
           }
 
-          select.innerHTML = res.data.map(c => `
-            <option value="${c._id}">${c.name} (${c.campCode} - ${toBanglaDate(c.date)})</option>
+          select.innerHTML = camps.map(c => `
+            <option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name} (${c.campCode} - ${toBanglaDate(c.date)})</option>
           `).join('');
 
           currentCampId = select.value;

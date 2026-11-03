@@ -317,14 +317,13 @@
       if (!campSelect) return;
       try {
         const res = await apiFetch('/api/camps');
-        if (res && res.success && Array.isArray(res.data)) {
-          allCampsList = res.data;
-          const activeCamps = allCampsList.filter(c => c.status === 'ACTIVE');
-          if (activeCamps.length === 0) {
-            campSelect.innerHTML = '<option value="">-- কোনো চালু ক্যাম্প নেই (প্রথমে ক্যাম্প চালু করুন) --</option>';
+        if (res && res.success) {
+          allCampsList = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+          if (allCampsList.length === 0) {
+            campSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
           } else {
             campSelect.innerHTML = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>' +
-              activeCamps.map(c => `<option value="${c._id}">🟢 ${c.name}</option>`).join('');
+              allCampsList.map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`).join('');
           }
         }
       } catch (e) {
@@ -342,17 +341,14 @@
       document.getElementById('edit-vol-resp').value = vol.responsibility || 'Registration Desk';
       document.getElementById('edit-vol-status').value = vol.accountStatus || 'ACTIVE';
 
-      // Populate edit camp dropdown with active camps plus current camp
+      // Populate edit camp dropdown with all available camps
       const editCampSelect = document.getElementById('edit-vol-camp');
       const currentCampId = vol.assignedCamp?._id || vol.assignedCampId?._id || vol.assignedCampId || '';
 
       let optionsHtml = '<option value="">-- কোনো ক্যাম্প নির্ধারিত নেই --</option>';
-      allCampsList.forEach(c => {
+      (allCampsList || []).forEach(c => {
         const isCurrent = String(c._id) === String(currentCampId);
-        const isEligible = c.status === 'ACTIVE' || isCurrent;
-        if (isEligible) {
-          optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`;
-        }
+        optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`;
       });
       editCampSelect.innerHTML = optionsHtml;
 

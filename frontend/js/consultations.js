@@ -167,33 +167,60 @@ async function loadDoctorCamps() {
   if (!campSelect) return;
 
   try {
+    let camps = [];
     const res = await apiFetch('/api/camps?status=ACTIVE', { bypassCache: true });
-    if (res && res.success && Array.isArray(res.data)) {
-      doctorAssignedCamps = res.data;
-      if (doctorAssignedCamps.length === 0) {
-        // Fallback: fetch any camps
-        const fallbackRes = await apiFetch('/api/camps', { bypassCache: true });
-        if (fallbackRes && fallbackRes.success && Array.isArray(fallbackRes.data)) {
-          doctorAssignedCamps = fallbackRes.data;
-        }
-      }
-
-      if (doctorAssignedCamps.length === 0) {
-        campSelect.innerHTML = '<option value="">-- কোনো সক্রিয় ক্যাম্প নেই --</option>';
-        showToast('বর্তমানে কোনো সক্রিয় স্বাস্থ্য ক্যাম্প নেই', 'info');
-        return;
-      }
-
-      campSelect.innerHTML = doctorAssignedCamps.map(c => `
-        <option value="${c._id}">${c.name} (${c.campCode})</option>
-      `).join('');
-
-      activeConsultationCampId = campSelect.value;
-      campSelect.addEventListener('change', () => {
-        activeConsultationCampId = campSelect.value;
-        resetConsultationScreen();
-      });
+    if (res && res.success) {
+      camps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
     }
+
+    if (!camps || camps.length === 0) {
+      const fallbackRes = await apiFetch('/api/camps', { bypassCache: true });
+      if (fallbackRes && fallbackRes.success) {
+        camps = Array.isArray(fallbackRes.data) ? fallbackRes.data : (fallbackRes.data?.camps || []);
+      }
+    }
+
+    doctorAssignedCamps = camps || [];
+
+    if (doctorAssignedCamps.length === 0) {
+      campSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
+      showToast('বর্তমানে কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি', 'info');
+      return;
+    }
+
+    // Determine preferred default camp
+    const savedCampId = localStorage.getItem('wcc_active_doctor_camp');
+    const userAssignedCamp = window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
+    const userCampId = userAssignedCamp?._id || userAssignedCamp || null;
+
+    let preferredCampId = null;
+    if (userCampId && doctorAssignedCamps.some(c => String(c._id) === String(userCampId))) {
+      preferredCampId = String(userCampId);
+    } else if (savedCampId && doctorAssignedCamps.some(c => String(c._id) === String(savedCampId))) {
+      preferredCampId = String(savedCampId);
+    } else {
+      const firstActive = doctorAssignedCamps.find(c => c.status === 'ACTIVE');
+      preferredCampId = String(firstActive ? firstActive._id : doctorAssignedCamps[0]._id);
+    }
+
+    campSelect.innerHTML = doctorAssignedCamps.map(c => {
+      const isSelected = String(c._id) === String(preferredCampId);
+      const icon = c.status === 'ACTIVE' ? '🟢' : '⚪';
+      return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>${icon} ${c.name} (${c.campCode})</option>`;
+    }).join('');
+
+    activeConsultationCampId = campSelect.value || preferredCampId;
+    if (activeConsultationCampId) {
+      localStorage.setItem('wcc_active_doctor_camp', activeConsultationCampId);
+    }
+
+    campSelect.addEventListener('change', () => {
+      activeConsultationCampId = campSelect.value;
+      if (activeConsultationCampId) {
+        localStorage.setItem('wcc_active_doctor_camp', activeConsultationCampId);
+      }
+      resetConsultationScreen();
+    });
   } catch (err) {
     showToast(err.message || 'ক্যাম্প তালিকা লোড করতে সমস্যা হয়েছে', 'error');
   }

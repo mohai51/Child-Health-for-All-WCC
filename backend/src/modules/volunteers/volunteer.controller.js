@@ -137,12 +137,6 @@ async function createVolunteer(req, res) {
       if (!targetCamp) {
         return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
       }
-      if (targetCamp.status !== 'ACTIVE') {
-        return res.status(400).json({
-          success: false,
-          message: 'শুধুমাত্র চালু থাকা স্বাস্থ্য ক্যাম্পেই স্বেচ্ছাসেবক যুক্ত করা যাবে। অনুগ্রহ করে প্রথমে ক্যাম্পটি চালু করুন।'
-        });
-      }
     }
 
     let createdUser = null;

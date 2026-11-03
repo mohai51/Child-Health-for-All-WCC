@@ -16,46 +16,71 @@ async function getCamps(req, res) {
       query.status = req.query.status.toUpperCase();
     }
 
-    // For active operational desks (patient registration & doctor consultation),
-    // always return all ACTIVE camps so field staff on mobile are never blocked.
-    // For non-active requests (management/history), restrict non-admins to their assigned camps.
-    if (query.status === 'ACTIVE') {
-      // Keep query.status = 'ACTIVE' without restricting query._id
-    } else if (req.user && req.user.role === 'DOCTOR') {
-      const Doctor = require('../doctors/doctor.model');
-      const doc = await Doctor.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
-      const assigned = await CampMember.find({
-        $or: [
-          { userId: req.user._id },
-          ...(doc ? [{ doctorId: doc._id }] : [])
-        ]
-      }).select('campId').lean();
-      const campIds = [
-        ...assigned.map(a => a.campId),
-        ...(doc?.assignedCampId ? [doc.assignedCampId] : [])
-      ];
-      query._id = { $in: campIds };
-    } else if (req.user && (req.user.role === 'REGISTRATION_VOLUNTEER' || req.user.role === 'CAMP_COORDINATOR')) {
-      const Volunteer = require('../volunteers/volunteer.model');
-      const vol = await Volunteer.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
-      const assigned = await CampMember.find({
-        $or: [
-          { userId: req.user._id },
-          ...(vol ? [{ volunteerId: vol._id }] : [])
-        ]
-      }).select('campId').lean();
-      const campIds = [
-        ...assigned.map(a => a.campId),
-        ...(vol?.assignedCampId ? [vol.assignedCampId] : [])
-      ];
-      if (campIds.length > 0) {
-        query._id = { $in: campIds };
+    // Only restrict by assigned camps if specifically requested via ?assignedOnly=true
+    if (req.query.assignedOnly === 'true' && req.user) {
+      if (req.user.role === 'DOCTOR') {
+        const Doctor = require('../doctors/doctor.model');
+        const doc = await Doctor.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
+        const assigned = await CampMember.find({
+          $or: [
+            { userId: req.user._id },
+            ...(doc ? [{ doctorId: doc._id }] : [])
+          ]
+        }).select('campId').lean();
+        const campIds = [
+          ...assigned.map(a => a.campId),
+          ...(doc?.assignedCampId ? [doc.assignedCampId] : [])
+        ];
+        if (campIds.length > 0) {
+          query._id = { $in: campIds };
+        }
+      } else if (req.user.role === 'REGISTRATION_VOLUNTEER' || req.user.role === 'CAMP_COORDINATOR') {
+        const Volunteer = require('../volunteers/volunteer.model');
+        const vol = await Volunteer.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
+        const assigned = await CampMember.find({
+          $or: [
+            { userId: req.user._id },
+            ...(vol ? [{ volunteerId: vol._id }] : [])
+          ]
+        }).select('campId').lean();
+        const campIds = [
+          ...assigned.map(a => a.campId),
+          ...(vol?.assignedCampId ? [vol.assignedCampId] : [])
+        ];
+        if (campIds.length > 0) {
+          query._id = { $in: campIds };
+        }
       }
     }
 
-    const camps = await Camp.find(query).sort({ date: -1, createdAt: -1 }).lean();
+    let camps = await Camp.find(query).sort({ status: 1, date: -1, createdAt: -1 }).lean();
+
+    // If active camps specifically requested but none found, fallback to all camps so users are NEVER blocked
+    if (camps.length === 0 && query.status === 'ACTIVE') {
+      camps = await Camp.find({}).sort({ date: -1, createdAt: -1 }).lean();
+      if (camps.length > 0) {
+        // Automatically activate the most recent camp so active endpoints work seamlessly
+        await Camp.updateOne({ _id: camps[0]._id }, { $set: { status: 'ACTIVE' } });
+        camps[0].status = 'ACTIVE';
+      }
+    }
+
+    // If database has zero camps, auto-seed the official active camp immediately
     if (camps.length === 0) {
-      return res.json({ success: true, data: [] });
+      const autoCamp = await Camp.create({
+        campCode: `CAMP-${new Date().getFullYear()}-002`,
+        name: 'Child Health For All - 8 no Ward Jhalokathi [UMB]',
+        date: new Date(),
+        district: 'ঝালকাঠি',
+        upazila: 'ঝালকাঠি সদর',
+        venue: 'উদ্বোধন মাধ্যমিক বিদ্যালয়',
+        isPourashava: true,
+        pourashavaName: 'ঝালকাঠি',
+        description: 'উই ক্যান চেঞ্জ (WCC) শিশু স্বাস্থ্য সেবা ও পুষ্টি ক্যাম্প ২০২৬',
+        organizerName: 'We Can Change (WCC)',
+        status: 'ACTIVE'
+      });
+      camps = [autoCamp.toObject()];
     }
 
     // If simple camp list requested for fast dropdown population (e.g. ?simple=true)
@@ -166,7 +191,7 @@ async function createCamp(req, res) {
       pourashavaName: isPourashava ? (pourashavaName || '').trim() : '',
       description: (description || '').trim(),
       organizerName: organizerName || 'We Can Change (WCC)',
-      status: 'DRAFT',
+      status: 'ACTIVE',
       createdBy: req.user._id
     });
 

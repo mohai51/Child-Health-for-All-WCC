@@ -770,20 +770,18 @@
       const campSelect = document.getElementById('doc-assigned-camp');
       const reassignSelect = document.getElementById('reassign-camp-select');
 
-      const activeCamps = allCamps.filter(c => c.status === 'ACTIVE');
-
       let optionsHtml = '';
-      if (activeCamps.length === 0) {
-        optionsHtml = '<option value="">-- কোনো চালু ক্যাম্প নেই (প্রথমে ক্যাম্প চালু করুন) --</option>';
+      if (!allCamps || allCamps.length === 0) {
+        optionsHtml = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
       } else {
-        optionsHtml = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (শুধুমাত্র চালু ক্যাম্প) --</option>' +
-          activeCamps.map(c => `<option value="${c._id}">🟢 ${c.name}</option>`).join('');
+        optionsHtml = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>' +
+          allCamps.map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`).join('');
       }
 
       if (campSelect) campSelect.innerHTML = optionsHtml;
       if (reassignSelect) {
         reassignSelect.innerHTML = '<option value="">-- ক্যাম্প অ্যাসাইনমেন্ট বাতিল করুন --</option>' + 
-          activeCamps.map(c => `<option value="${c._id}">🟢 ${c.name}</option>`).join('');
+          (allCamps || []).map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`).join('');
       }
     }
 

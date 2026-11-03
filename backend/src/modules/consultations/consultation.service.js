@@ -18,10 +18,25 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
     camp = await Camp.findById(campId);
   }
   if (!camp) {
-    camp = await Camp.findOne({ status: 'ACTIVE' }) || await Camp.findOne();
+    camp = await Camp.findOne({ status: 'ACTIVE' });
   }
   if (!camp) {
-    throw new Error('কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি (Camp not found)');
+    camp = await Camp.findOne().sort({ createdAt: -1 });
+  }
+  if (!camp) {
+    camp = await Camp.create({
+      campCode: `CAMP-${new Date().getFullYear()}-002`,
+      name: 'Child Health For All - 8 no Ward Jhalokathi [UMB]',
+      date: new Date(),
+      district: 'ঝালকাঠি',
+      upazila: 'ঝালকাঠি সদর',
+      venue: 'উদ্বোধন মাধ্যমিক বিদ্যালয়',
+      isPourashava: true,
+      pourashavaName: 'ঝালকাঠি',
+      description: 'উই ক্যান চেঞ্জ (WCC) শিশু স্বাস্থ্য সেবা ও পুষ্টি ক্যাম্প ২০২৬',
+      organizerName: 'We Can Change (WCC)',
+      status: 'ACTIVE'
+    });
   }
 
   // 2. Resolve Doctor profile
@@ -234,10 +249,26 @@ async function startConsultation({ patientId, campId, visitId, doctorUserId }) {
     camp = await Camp.findById(campId);
   }
   if (!camp) {
-    camp = await Camp.findOne({ status: 'ACTIVE' }) || await Camp.findOne();
+    camp = await Camp.findOne({ status: 'ACTIVE' }) || await Camp.findOne().sort({ createdAt: -1 });
   }
-  if (!camp || camp.status === 'CLOSED') {
-    throw new Error('বন্ধ ক্যাম্পে নতুন চিকিৎসা শুরু করা যাবে না (Camp is closed)');
+  if (!camp) {
+    camp = await Camp.create({
+      campCode: `CAMP-${new Date().getFullYear()}-002`,
+      name: 'Child Health For All - 8 no Ward Jhalokathi [UMB]',
+      date: new Date(),
+      district: 'ঝালকাঠি',
+      upazila: 'ঝালকাঠি সদর',
+      venue: 'উদ্বোধন মাধ্যমিক বিদ্যালয়',
+      isPourashava: true,
+      pourashavaName: 'ঝালকাঠি',
+      description: 'উই ক্যান চেঞ্জ (WCC) শিশু স্বাস্থ্য সেবা ও পুষ্টি ক্যাম্প ২০২৬',
+      organizerName: 'We Can Change (WCC)',
+      status: 'ACTIVE'
+    });
+  }
+  if (camp.status !== 'ACTIVE') {
+    camp.status = 'ACTIVE';
+    await camp.save();
   }
 
   let consultation = await Consultation.findOne({

@@ -174,7 +174,7 @@ async function apiFetch(endpoint, options = {}) {
   // If a mutation request (POST, PUT, PATCH, DELETE) occurs, bust read cache immediately
   if (!['GET', 'HEAD'].includes(method)) {
     clearApiCache();
-  } else if (!options.bypassCache) {
+  } else if (options.useCache === true && !options.bypassCache) {
     const cached = apiResponseCache.get(url);
     if (cached && (Date.now() - cached.timestamp < (options.cacheTtl || DEFAULT_CACHE_TTL_MS))) {
       // Return deep copy or structured data from in-memory cache instantly

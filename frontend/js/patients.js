@@ -41,57 +41,69 @@ async function loadActiveCampsForRegistration() {
   if (!select) return;
 
   try {
-    const res = await apiFetch('/api/camps?status=ACTIVE');
+    let camps = [];
+    const res = await apiFetch('/api/camps?status=ACTIVE', { bypassCache: true });
     if (res && res.success) {
-      const camps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
-      if (!camps || camps.length === 0) {
-        select.innerHTML = '<option value="">-- বর্তমানে কোনো সক্রিয় ক্যাম্প নেই (অ্যাডমিনের সাথে যোগাযোগ করুন) --</option>';
-        selectedCampId = null;
-        showToast('বর্তমানে কোনো স্বাস্থ্য ক্যাম্প সক্রিয় নেই। অ্যাডমিনকে ক্যাম্প চালু করতে বলুন।', 'error');
-        return;
+      camps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+    }
+
+    // Fallback: if no active camps returned, fetch all camps so field registration is never blocked
+    if (!camps || camps.length === 0) {
+      const allRes = await apiFetch('/api/camps', { bypassCache: true });
+      if (allRes && allRes.success) {
+        camps = Array.isArray(allRes.data) ? allRes.data : (allRes.data?.camps || []);
       }
+    }
 
-      campsCacheMap = {};
-      camps.forEach(c => {
-        campsCacheMap[c._id] = c;
-      });
+    if (!camps || camps.length === 0) {
+      select.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি (অ্যাডমিনের সাথে যোগাযোগ করুন) --</option>';
+      selectedCampId = null;
+      showToast('কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি।', 'error');
+      return;
+    }
 
-      // Determine best default camp: previously stored camp in localStorage, user assigned camp, or first camp
-      const savedCampId = localStorage.getItem('wcc_active_registration_camp');
-      const userAssignedCamp = window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
-      const userCampId = userAssignedCamp?._id || userAssignedCamp || null;
+    campsCacheMap = {};
+    camps.forEach(c => {
+      campsCacheMap[c._id] = c;
+    });
 
-      let preferredCampId = null;
-      if (userCampId && campsCacheMap[userCampId]) {
-        preferredCampId = String(userCampId);
-      } else if (savedCampId && campsCacheMap[savedCampId]) {
-        preferredCampId = String(savedCampId);
-      } else {
-        preferredCampId = String(camps[0]._id);
-      }
+    // Determine best default camp: previously stored camp in localStorage, user assigned camp, first active camp, or first camp
+    const savedCampId = localStorage.getItem('wcc_active_registration_camp');
+    const userAssignedCamp = window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
+    const userCampId = userAssignedCamp?._id || userAssignedCamp || null;
 
-      select.innerHTML = camps.map(c => {
-        const isSelected = String(c._id) === String(preferredCampId);
-        const pourashavaStr = c.isPourashava && c.pourashavaName ? ` [${c.pourashavaName}]` : '';
-        return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>🟢 ${c.name} (${c.campCode} - ${c.venue}${pourashavaStr})</option>`;
-      }).join('');
+    let preferredCampId = null;
+    if (userCampId && campsCacheMap[userCampId]) {
+      preferredCampId = String(userCampId);
+    } else if (savedCampId && campsCacheMap[savedCampId]) {
+      preferredCampId = String(savedCampId);
+    } else {
+      const firstActive = camps.find(c => c.status === 'ACTIVE');
+      preferredCampId = String(firstActive ? firstActive._id : camps[0]._id);
+    }
 
-      selectedCampId = select.value || preferredCampId;
+    select.innerHTML = camps.map(c => {
+      const isSelected = String(c._id) === String(preferredCampId);
+      const pourashavaStr = c.isPourashava && c.pourashavaName ? ` [${c.pourashavaName}]` : '';
+      const statusIcon = c.status === 'ACTIVE' ? '🟢' : '⚪';
+      return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>${statusIcon} ${c.name} (${c.campCode} - ${c.venue}${pourashavaStr})</option>`;
+    }).join('');
+
+    selectedCampId = select.value || preferredCampId;
+    if (selectedCampId && campsCacheMap[selectedCampId]) {
+      localStorage.setItem('wcc_active_registration_camp', selectedCampId);
+      applyCampLocation(campsCacheMap[selectedCampId]);
+    }
+
+    select.onchange = () => {
+      selectedCampId = select.value;
       if (selectedCampId && campsCacheMap[selectedCampId]) {
         localStorage.setItem('wcc_active_registration_camp', selectedCampId);
         applyCampLocation(campsCacheMap[selectedCampId]);
       }
-
-      select.onchange = () => {
-        selectedCampId = select.value;
-        if (selectedCampId) {
-          localStorage.setItem('wcc_active_registration_camp', selectedCampId);
-          applyCampLocation(campsCacheMap[selectedCampId]);
-        }
-      };
-    }
+    };
   } catch (err) {
-    showToast(err.message || 'সক্রিয় ক্যাম্প লোড ব্যর্থ', 'error');
+    showToast(err.message || 'স্বাস্থ্য ক্যাম্প লোড ব্যর্থ', 'error');
   }
 }
 
