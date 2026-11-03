@@ -143,12 +143,19 @@ function getApiUrl(endpoint) {
   if (endpoint.startsWith('http://') || endpoint.startsWith('https://')) {
     return endpoint;
   }
-  // If current page is served from backend port 5000, keep relative path
-  if (typeof window !== 'undefined' && window.location.protocol.startsWith('http') && window.location.port === '5000') {
-    return endpoint;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+
+  if (typeof window !== 'undefined' && window.location.protocol.startsWith('http')) {
+    // If running on local dev server (e.g. Live Server port 5500 or 3000) while backend is on 5000
+    if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port && window.location.port !== '5000') {
+      return `http://localhost:5000${cleanEndpoint}`;
+    }
+    // On Vercel, on production domains, or on localhost:5000, always use relative path
+    return cleanEndpoint;
   }
-  // Fallback to backend server on port 5000 (e.g. if opened via Live Server 5500 or file://)
-  return `http://localhost:5000${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+  // Fallback for file:// or non-browser environments
+  return `http://localhost:5000${cleanEndpoint}`;
 }
 
 async function apiFetch(endpoint, options = {}) {

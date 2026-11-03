@@ -114,10 +114,15 @@ app.use('/api/images', imageRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// Health check endpoint
+// Health check endpoint with DB diagnostic status
 app.get('/api/health', (req, res) => {
+  const mongoose = require('mongoose');
+  const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  const dbState = states[mongoose.connection.readyState] || 'unknown';
   res.json({
     status: 'healthy',
+    database: dbState,
+    dbReady: mongoose.connection.readyState === 1,
     organization: 'We Can Change (WCC)',
     project: 'WCC Child Health Registry & Multi-Camp Management System',
     timestamp: new Date().toISOString()

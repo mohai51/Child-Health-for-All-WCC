@@ -10,9 +10,13 @@ async function connectDB(customUri) {
       return mongoose.connection;
     }
 
+    const isVercel = Boolean(process.env.VERCEL);
     let uri = customUri || (process.env.NODE_ENV === 'test' ? '' : config.mongodbUri);
 
     if (!uri) {
+      if (isVercel) {
+        throw new Error('MONGODB_URI is not set in Vercel Environment Variables! Please add MONGODB_URI in Vercel Project Settings.');
+      }
       logger.info('No MONGODB_URI configured. Starting embedded MongoDB Memory Server for seamless development/testing...');
       const { MongoMemoryServer } = require('mongodb-memory-server');
       memoryServerInstance = await MongoMemoryServer.create();
@@ -24,13 +28,19 @@ async function connectDB(customUri) {
 
     try {
       await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: 5000,
+        serverSelectionTimeoutMS: isVercel ? 12000 : 5000,
         autoIndex: true,
         tlsAllowInvalidCertificates: true
       });
       logger.info('Connected to MongoDB database successfully.');
     } catch (connectErr) {
-      // If remote connection failed and we haven't tried in-memory server yet, fall back automatically
+      // In serverless Vercel environments, do not attempt to spawn embedded binaries
+      if (isVercel) {
+        logger.error({ error: connectErr.message }, 'Failed to connect to MongoDB Atlas on Vercel. Verify Network Access allows 0.0.0.0/0 in MongoDB Atlas.');
+        throw new Error(`Failed to connect to MongoDB Atlas on Vercel: ${connectErr.message}. Make sure Network Access (IP Access List) in MongoDB Atlas allows 0.0.0.0/0.`);
+      }
+
+      // If remote connection failed in local dev, fall back automatically to in-memory server
       if (!memoryServerInstance && !customUri) {
         logger.warn({ error: connectErr.message }, 'Failed to connect to configured MongoDB URI. Falling back to embedded MongoDB Memory Server...');
         const { MongoMemoryServer } = require('mongodb-memory-server');
