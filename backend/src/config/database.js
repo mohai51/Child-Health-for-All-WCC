@@ -11,7 +11,10 @@ async function connectDB(customUri) {
     }
 
     const isVercel = Boolean(process.env.VERCEL);
-    let uri = customUri || (process.env.NODE_ENV === 'test' ? '' : config.mongodbUri);
+    let uri = customUri || (process.env.NODE_ENV === 'test' ? '' : (process.env.MONGODB_URI || config.mongodbUri || ''));
+    if (uri) {
+      uri = uri.trim().replace(/^['"]|['"]$/g, '');
+    }
 
     if (!uri) {
       if (isVercel) {

@@ -102,6 +102,50 @@ app.use((req, res, next) => {
 // CSRF Double Submit Cookie Middleware
 app.use(csrfProtection);
 
+// Serverless database connection middleware (for Vercel)
+const mongoose = require('mongoose');
+let dbConnectionPromise = null;
+
+app.use(async (req, res, next) => {
+  // If not an API request, or already connected, or not in Vercel serverless mode, continue immediately
+  if (!req.path.startsWith('/api') || mongoose.connection.readyState === 1 || !process.env.VERCEL) {
+    return next();
+  }
+
+  // Health check has its own isolated error handler
+  if (req.path === '/api/health') {
+    return next();
+  }
+
+  if (!dbConnectionPromise) {
+    const { connectDB } = require('./config/database');
+    const { seedInitialData } = require('./scripts/seed');
+    dbConnectionPromise = (async () => {
+      await connectDB();
+      try {
+        await seedInitialData();
+      } catch (e) {
+        // seed errors non-fatal
+      }
+    })().catch(err => {
+      logger.error({ err: err.message }, 'Failed to connect DB in serverless middleware');
+      dbConnectionPromise = null;
+      throw err;
+    });
+  }
+
+  try {
+    await dbConnectionPromise;
+    next();
+  } catch (err) {
+    return res.status(503).json({
+      success: false,
+      message: 'ডাটাবেস কানেকশন ত্রুটি: ' + err.message,
+      tip: 'Verify MONGODB_URI in Vercel Environment Variables and ensure MongoDB Atlas Network Access has 0.0.0.0/0 allowed.'
+    });
+  }
+});
+
 // API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/camps', campRoutes);
