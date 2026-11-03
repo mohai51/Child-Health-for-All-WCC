@@ -43,29 +43,52 @@ async function loadActiveCampsForRegistration() {
   try {
     const res = await apiFetch('/api/camps?status=ACTIVE');
     if (res && res.success) {
-      if (!res.data || res.data.length === 0) {
+      const camps = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+      if (!camps || camps.length === 0) {
         select.innerHTML = '<option value="">-- বর্তমানে কোনো সক্রিয় ক্যাম্প নেই (অ্যাডমিনের সাথে যোগাযোগ করুন) --</option>';
+        selectedCampId = null;
         showToast('বর্তমানে কোনো স্বাস্থ্য ক্যাম্প সক্রিয় নেই। অ্যাডমিনকে ক্যাম্প চালু করতে বলুন।', 'error');
         return;
       }
 
       campsCacheMap = {};
-      res.data.forEach(c => {
+      camps.forEach(c => {
         campsCacheMap[c._id] = c;
       });
 
-      select.innerHTML = res.data.map(c => {
+      // Determine best default camp: previously stored camp in localStorage, user assigned camp, or first camp
+      const savedCampId = localStorage.getItem('wcc_active_registration_camp');
+      const userAssignedCamp = window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
+      const userCampId = userAssignedCamp?._id || userAssignedCamp || null;
+
+      let preferredCampId = null;
+      if (userCampId && campsCacheMap[userCampId]) {
+        preferredCampId = String(userCampId);
+      } else if (savedCampId && campsCacheMap[savedCampId]) {
+        preferredCampId = String(savedCampId);
+      } else {
+        preferredCampId = String(camps[0]._id);
+      }
+
+      select.innerHTML = camps.map(c => {
+        const isSelected = String(c._id) === String(preferredCampId);
         const pourashavaStr = c.isPourashava && c.pourashavaName ? ` [${c.pourashavaName}]` : '';
-        return `<option value="${c._id}">${c.name} (${c.campCode} - ${c.venue}${pourashavaStr})</option>`;
+        return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>🟢 ${c.name} (${c.campCode} - ${c.venue}${pourashavaStr})</option>`;
       }).join('');
 
-      selectedCampId = select.value;
-      applyCampLocation(campsCacheMap[selectedCampId]);
-
-      select.addEventListener('change', () => {
-        selectedCampId = select.value;
+      selectedCampId = select.value || preferredCampId;
+      if (selectedCampId && campsCacheMap[selectedCampId]) {
+        localStorage.setItem('wcc_active_registration_camp', selectedCampId);
         applyCampLocation(campsCacheMap[selectedCampId]);
-      });
+      }
+
+      select.onchange = () => {
+        selectedCampId = select.value;
+        if (selectedCampId) {
+          localStorage.setItem('wcc_active_registration_camp', selectedCampId);
+          applyCampLocation(campsCacheMap[selectedCampId]);
+        }
+      };
     }
   } catch (err) {
     showToast(err.message || 'সক্রিয় ক্যাম্প লোড ব্যর্থ', 'error');
@@ -137,10 +160,14 @@ async function handlePatientRegistration(e) {
   const form = e.target;
   const submitBtn = form.querySelector('button[type="submit"]');
 
-  if (!selectedCampId) {
+  const campSelectEl = document.getElementById('camp-select');
+  const campId = (campSelectEl && campSelectEl.value) ? campSelectEl.value : selectedCampId;
+
+  if (!campId) {
     showToast('অনুগ্রহ করে একটি সক্রিয় স্বাস্থ্য ক্যাম্প নির্বাচন করুন', 'error');
     return;
   }
+  selectedCampId = campId;
 
   submitBtn.disabled = true;
   submitBtn.innerText = 'নিবন্ধন সম্পন্ন হচ্ছে...';

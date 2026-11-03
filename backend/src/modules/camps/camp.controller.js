@@ -16,15 +16,41 @@ async function getCamps(req, res) {
       query.status = req.query.status.toUpperCase();
     }
 
-    // If doctor or volunteer, only return camps they are assigned to (unless Super Admin)
-    if (req.user.role === 'DOCTOR') {
+    // For active operational desks (patient registration & doctor consultation),
+    // always return all ACTIVE camps so field staff on mobile are never blocked.
+    // For non-active requests (management/history), restrict non-admins to their assigned camps.
+    if (query.status === 'ACTIVE') {
+      // Keep query.status = 'ACTIVE' without restricting query._id
+    } else if (req.user && req.user.role === 'DOCTOR') {
+      const Doctor = require('../doctors/doctor.model');
+      const doc = await Doctor.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
       const assigned = await CampMember.find({
-        $or: [{ userId: req.user._id }, ...(req.doctor ? [{ doctorId: req.doctor._id }] : [])]
+        $or: [
+          { userId: req.user._id },
+          ...(doc ? [{ doctorId: doc._id }] : [])
+        ]
       }).select('campId').lean();
-      query._id = { $in: assigned.map(a => a.campId) };
-    } else if (req.user.role === 'REGISTRATION_VOLUNTEER' || req.user.role === 'CAMP_COORDINATOR') {
-      const assigned = await CampMember.find({ userId: req.user._id }).select('campId').lean();
-      query._id = { $in: assigned.map(a => a.campId) };
+      const campIds = [
+        ...assigned.map(a => a.campId),
+        ...(doc?.assignedCampId ? [doc.assignedCampId] : [])
+      ];
+      query._id = { $in: campIds };
+    } else if (req.user && (req.user.role === 'REGISTRATION_VOLUNTEER' || req.user.role === 'CAMP_COORDINATOR')) {
+      const Volunteer = require('../volunteers/volunteer.model');
+      const vol = await Volunteer.findOne({ userId: req.user._id }).select('_id assignedCampId').lean();
+      const assigned = await CampMember.find({
+        $or: [
+          { userId: req.user._id },
+          ...(vol ? [{ volunteerId: vol._id }] : [])
+        ]
+      }).select('campId').lean();
+      const campIds = [
+        ...assigned.map(a => a.campId),
+        ...(vol?.assignedCampId ? [vol.assignedCampId] : [])
+      ];
+      if (campIds.length > 0) {
+        query._id = { $in: campIds };
+      }
     }
 
     const camps = await Camp.find(query).sort({ date: -1, createdAt: -1 }).lean();
