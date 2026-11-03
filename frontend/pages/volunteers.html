@@ -249,6 +249,35 @@
     </div>
   </div>
 
+  <!-- Styled Confirmation Modal for Volunteer Deletion -->
+  <div id="delete-volunteer-modal" class="modal-overlay" style="z-index: 10090;">
+    <div class="modal-content" style="max-width: 440px;">
+      <div class="modal-header">
+        <h3 style="font-size:1.15rem; font-weight:700; color:var(--danger); display:flex; align-items:center; gap:8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+          <span>স্বেচ্ছাসেবক মুছে ফেলার নিশ্চিতকরণ</span>
+        </h3>
+        <button type="button" class="modal-close" onclick="closeModal('delete-volunteer-modal')" style="background:none; border:none; font-size:1.6rem; cursor:pointer; color:#64748b; line-height:1;" title="বন্ধ করুন">&times;</button>
+      </div>
+      <div class="modal-body" style="padding:20px;">
+        <input type="hidden" id="delete-volunteer-id">
+        <p style="font-size:0.95rem; color:var(--text-main); margin-bottom:12px; line-height:1.5;">
+          আপনি কি নিশ্চিত যে <b id="delete-volunteer-name" style="color:var(--danger);"></b> স্বেচ্ছাসেবককে তালিকা থেকে মুছে ফেলতে চান?
+        </p>
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; font-size:0.85rem; color:#991b1b; line-height:1.4;">
+          ⚠️ <b>সতর্কতা:</b> মুছে ফেললে এই স্বেচ্ছাসেবকের সমস্ত প্রোফাইল তথ্য, ক্যাম্প অ্যাসাইনমেন্ট এবং লগইন অ্যাকাউন্ট সম্পূর্ণ অপসারিত হবে।
+        </div>
+      </div>
+      <div class="modal-footer" style="padding:16px 20px; display:flex; justify-content:flex-end; gap:10px;">
+        <button type="button" onclick="closeModal('delete-volunteer-modal')" class="btn btn-outline">বাতিল</button>
+        <button type="button" id="confirm-delete-volunteer-btn" class="btn btn-danger" style="background:var(--danger); border-color:var(--danger); color:#fff; font-weight:700; display:inline-flex; align-items:center; gap:6px; cursor:pointer;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          <span>হ্যাঁ, মুছে ফেলুন</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <script src="/js/api.js?v=20261103_1425"></script>
   <script src="/js/auth.js?v=20261103_1425"></script>
   <script>
@@ -464,7 +493,7 @@
                 <td><b>${toBanglaNumber(stats.registrationCount || 0)}</b> জন রোগী</td>
                 <td><span class="status-badge active">${escapeHtml(v.accountStatus)}</span></td>
                 <td>
-                  <button type="button" class="btn btn-outline" style="padding:6px 12px; font-size:0.84rem; color:var(--danger); border-color:#fca5a5; display:inline-flex; align-items:center; gap:6px; cursor:pointer;" onclick="deleteVolunteer('${v._id}', '${escapeHtml(v.fullName)}')">
+                  <button type="button" class="btn btn-outline btn-delete-volunteer" data-id="${v._id}" style="padding:6px 12px; font-size:0.84rem; color:var(--danger); border-color:#fca5a5; display:inline-flex; align-items:center; gap:6px; cursor:pointer;" onclick="window.promptDeleteVolunteer('${v._id}')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                     <span>মুছে ফেলুন</span>
                   </button>
@@ -478,22 +507,61 @@
       }
     }
 
-    async function deleteVolunteer(volunteerId, volunteerName) {
-      const confirmed = confirm(`আপনি কি নিশ্চিত যে "${volunteerName}" স্বেচ্ছাসেবককে মুছে ফেলতে চান?\nমুছে ফেললে স্বেচ্ছাসেবকের প্রোফাইল ও লগইন অ্যাকাউন্ট সম্পূর্ণ অপসারিত হবে।`);
-      if (!confirmed) return;
+    // Modal-based Delete Prompt for Volunteers (100% reliable across mobile & desktop)
+    window.promptDeleteVolunteer = function(volunteerId) {
+      if (!volunteerId) return;
+      const vol = allVolunteersData.find(v => String(v._id) === String(volunteerId));
+      const volName = vol ? vol.fullName : 'এই';
+      const idInput = document.getElementById('delete-volunteer-id');
+      const nameElem = document.getElementById('delete-volunteer-name');
+      if (idInput) idInput.value = volunteerId;
+      if (nameElem) nameElem.textContent = `"${volName}"`;
+      window.openModal('delete-volunteer-modal');
+    };
+    window.deleteVolunteer = window.promptDeleteVolunteer;
 
-      try {
-        const res = await apiFetch(`/api/volunteers/${volunteerId}`, {
-          method: 'DELETE'
-        });
-        if (res && res.success) {
-          showToast(res.message || 'স্বেচ্ছাসেবক সফলভাবে মুছে ফেলা হয়েছে', 'success');
-          await loadVolunteers();
+    // Confirm Delete Volunteer button handler
+    const confirmDeleteVolBtn = document.getElementById('confirm-delete-volunteer-btn');
+    if (confirmDeleteVolBtn) {
+      confirmDeleteVolBtn.addEventListener('click', async () => {
+        const volunteerId = document.getElementById('delete-volunteer-id').value;
+        if (!volunteerId) return;
+
+        confirmDeleteVolBtn.disabled = true;
+        const origText = confirmDeleteVolBtn.innerHTML;
+        confirmDeleteVolBtn.innerHTML = 'মুছে ফেলা হচ্ছে...';
+
+        try {
+          const res = await apiFetch(`/api/volunteers/${volunteerId}`, {
+            method: 'DELETE'
+          });
+          if (res && res.success) {
+            showToast(res.message || 'স্বেচ্ছাসেবক সফলভাবে মুছে ফেলা হয়েছে', 'success');
+            window.closeModal('delete-volunteer-modal');
+            await loadVolunteers();
+          } else {
+            throw new Error(res?.message || 'স্বেচ্ছাসেবক মুছে ফেলা যায়নি');
+          }
+        } catch (err) {
+          showToast(err.message || 'স্বেচ্ছাসেবক মুছে ফেলা যায়নি', 'error');
+        } finally {
+          confirmDeleteVolBtn.disabled = false;
+          confirmDeleteVolBtn.innerHTML = origText;
         }
-      } catch (err) {
-        showToast(err.message || 'স্বেচ্ছাসেবক মুছে ফেলা যায়নি', 'error');
-      }
+      });
     }
+
+    // Event delegation fallback for delete volunteer buttons
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-delete-volunteer');
+      if (btn) {
+        const id = btn.getAttribute('data-id');
+        if (id) {
+          e.preventDefault();
+          window.promptDeleteVolunteer(id);
+        }
+      }
+    });
   </script>
 </body>
 </html>
