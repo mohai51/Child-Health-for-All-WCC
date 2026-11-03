@@ -202,13 +202,24 @@
 
       <main class="page-container">
         <!-- Camp Selector -->
+        <!-- Camp Selector & Export Actions -->
         <div class="card" style="margin-bottom: 24px;">
-          <div class="card-body" style="padding: 16px 20px;">
-            <div style="max-width: 650px;">
+          <div class="card-body" style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 16px;">
+            <div style="flex: 1; min-width: 280px; max-width: 600px;">
               <label class="form-label required" for="report-camp-select" style="font-weight: 700; margin-bottom: 6px;">
                 স্বাস্থ্য ক্যাম্প নির্বাচন করুন:
               </label>
               <select id="report-camp-select" class="form-control" style="font-weight:600; font-size:1rem; border-color:var(--primary);"></select>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+              <button type="button" onclick="exportCampFile('xlsx')" class="btn btn-outline" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;" title="ক্যাম্পের সম্পূর্ণ ডাটা এক্সেল শিটে ডাউনলোড করুন">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+                <span>এক্সেল (Excel) ডাউনলোড</span>
+              </button>
+              <button type="button" onclick="exportCampFile('csv')" class="btn btn-outline" style="font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;" title="ক্যাম্পের ডাটা CSV ফাইলে ডাউনলোড করুন">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0284c7" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>CSV ডাউনলোড</span>
+              </button>
             </div>
           </div>
         </div>
@@ -219,10 +230,14 @@
             <div class="report-title">
               <span>📋 ১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)</span>
             </div>
-            <div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-1" onclick="downloadReportPDF(1)" class="btn-pdf-download">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <span>রোগী রিপোর্ট PDF ডাউনলোড</span>
+              </button>
+              <button type="button" onclick="printReport(1)" class="btn btn-outline" style="padding: 9px 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="প্রিন্ট বা ব্রাউজার থেকে সরাসরি পিডিএফ হিসেবে সেভ করুন">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>প্রিন্ট / সেভ</span>
               </button>
             </div>
           </div>
@@ -282,10 +297,14 @@
             <div class="report-title">
               <span>🤝 ২. স্বেচ্ছাসেবক তালিকা (Volunteer List)</span>
             </div>
-            <div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-2" onclick="downloadReportPDF(2)" class="btn-pdf-download">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <span>ভলান্টিয়ার তালিকা PDF ডাউনলোড</span>
+              </button>
+              <button type="button" onclick="printReport(2)" class="btn btn-outline" style="padding: 9px 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="প্রিন্ট বা ব্রাউজার থেকে সরাসরি পিডিএফ হিসেবে সেভ করুন">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>প্রিন্ট / সেভ</span>
               </button>
             </div>
           </div>
@@ -315,10 +334,14 @@
             <div class="report-title">
               <span>🩺 ৩. চিকিৎসক তালিকা (Doctor List)</span>
             </div>
-            <div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-3" onclick="downloadReportPDF(3)" class="btn-pdf-download">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
                 <span>ডাক্তার তালিকা PDF ডাউনলোড</span>
+              </button>
+              <button type="button" onclick="printReport(3)" class="btn btn-outline" style="padding: 9px 14px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;" title="প্রিন্ট বা ব্রাউজার থেকে সরাসরি পিডিএফ হিসেবে সেভ করুন">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                <span>প্রিন্ট / সেভ</span>
               </button>
             </div>
           </div>
@@ -477,268 +500,417 @@
         .replace(/'/g, '&#039;');
     }
 
+    async function ensureHtml2Pdf() {
+      if (typeof window.html2pdf === 'function') return true;
+      return new Promise((resolve) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.onload = () => resolve(typeof window.html2pdf === 'function');
+        script.onerror = () => resolve(false);
+        document.head.appendChild(script);
+      });
+    }
+
+    async function prepareReportData(reportType) {
+      if (!currentCampData) {
+        const select = document.getElementById('report-camp-select');
+        const campId = select?.value || currentCampId;
+        if (campId) {
+          const res = await apiFetch(`/api/camps/${campId}/reports/summary`);
+          if (res && res.success) {
+            currentCampData = res.data;
+            renderReportsOnPage(currentCampData);
+          }
+        }
+      }
+
+      if (!currentCampData) {
+        showToast('ক্যাম্পের তথ্য পাওয়া যায়নি, অনুগ্রহ করে ক্যাম্প নির্বাচন করুন', 'error');
+        return null;
+      }
+
+      const camp = currentCampData.camp || {};
+      const summary = currentCampData.summary || {};
+      const patients = currentCampData.patients || [];
+      const volunteers = currentCampData.volunteers || [];
+      const doctors = currentCampData.doctors || [];
+
+      const campDateStr = camp.date ? new Date(camp.date).toLocaleDateString('bn-BD') : '';
+      const campVenueStr = [camp.venue, camp.upazila, camp.district].filter(Boolean).join(', ');
+
+      const headerSectionHtml = `
+        <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px; font-family: 'Hind Siliguri', 'Segoe UI', Arial, sans-serif;">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <div>
+              <h1 style="margin:0; font-size:22px; color:#0f172a; font-weight:800;">উই ক্যান চেঞ্জ (We Can Change - WCC)</h1>
+              <div style="font-size:14px; color:#0284c7; font-weight:700; margin-top:3px;">শিশু স্বাস্থ্য রেজিস্ট্রি ও স্বাস্থ্য সেবা কার্যক্রম</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:12px; color:#334155;">ক্যাম্প কোড: <b>${escapeHtml(camp.campCode || 'N/A')}</b></div>
+              <div style="font-size:12px; color:#334155;">তারিখ: <b>${escapeHtml(campDateStr)}</b></div>
+            </div>
+          </div>
+          <div style="margin-top:10px; font-size:13px; color:#1e293b; background:#f1f5f9; padding:8px 12px; border-radius:4px; border:1px solid #cbd5e1;">
+            <b>ক্যাম্পের নাম:</b> ${escapeHtml(camp.name)} &nbsp;|&nbsp; <b>স্থান:</b> ${escapeHtml(campVenueStr)}
+          </div>
+        </div>
+      `;
+
+      let filename = '';
+      let reportTitle = '';
+      let orientation = 'portrait';
+      let reportBodyHtml = '';
+
+      if (reportType === 1) {
+        filename = `wcc_patient_summary_report_${camp.campCode || 'camp'}.pdf`;
+        reportTitle = '১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)';
+        orientation = 'landscape';
+
+        const patientsRows = patients.map((p, idx) => `
+          <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px;">${toBanglaNumber(idx + 1)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px; font-weight:700;">${escapeHtml(p.patientName)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.age)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.guardianName)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.phone)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px; font-weight:600;">${escapeHtml(p.doctorName)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:${p.isReferred === 'Yes' ? '#15803d' : '#64748b'};">
+              ${p.isReferred === 'Yes' ? 'Yes' : 'No'}
+            </td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.referredTo)}</td>
+          </tr>
+        `).join('');
+
+        reportBodyHtml = `
+          ${headerSectionHtml}
+          <div style="text-align:center; margin-bottom:14px;">
+            <h2 style="margin:0; font-size:17px; font-weight:800; color:#0369a1; text-transform:uppercase;">
+              ১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)
+            </h2>
+          </div>
+
+          <!-- Summary Box -->
+          <div style="display:flex; justify-content:space-around; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:12px; margin-bottom:16px;">
+            <div style="text-align:center;">
+              <div style="font-size:13px; color:#475569; font-weight:600;">মোট রোগী দেখা হয়েছে</div>
+              <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalPatientsSeen || 0)} জন</div>
+            </div>
+            <div style="border-left:1px solid #bae6fd;"></div>
+            <div style="text-align:center;">
+              <div style="font-size:13px; color:#475569; font-weight:600;">কতজন ভলান্টিয়ার ছিল</div>
+              <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalVolunteers || 0)} জন</div>
+            </div>
+            <div style="border-left:1px solid #bae6fd;"></div>
+            <div style="text-align:center;">
+              <div style="font-size:13px; color:#475569; font-weight:600;">কতজন ডাক্তার ছিল</div>
+              <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalDoctors || 0)} জন</div>
+            </div>
+          </div>
+
+          <!-- Patient Table -->
+          <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+            <thead>
+              <tr style="background:#e2e8f0;">
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center; width:40px;">ক্র.</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">রোগীর নাম</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">বয়স</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">পিতা / অভিভাবকের নাম</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">ফোন নম্বর</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">কোন ডাক্তার দেখেছেন</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">রেফারেল (Yes/No)</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">রেফারেল গন্তব্য</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${patientsRows || '<tr><td colspan="8" style="text-align:center; padding:15px;">কোনো রেকর্ড নেই</td></tr>'}
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:space-between; margin-top:28px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
+            <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
+            <div>দায়িত্বপ্রাপ্ত কর্মকর্তা / ক্যাম্প সমন্বয়ক স্বাক্ষর: ____________________</div>
+          </div>
+        `;
+      } else if (reportType === 2) {
+        filename = `wcc_volunteer_list_${camp.campCode || 'camp'}.pdf`;
+        reportTitle = '২. স্বেচ্ছাসেবক তালিকা (Volunteer List)';
+        orientation = 'portrait';
+
+        const volunteerRows = volunteers.map((v, idx) => `
+          <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <td style="border:1px solid #94a3b8; padding:8px 10px; text-align:center; font-size:12px;">${toBanglaNumber(idx + 1)}</td>
+            <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px; font-weight:700;">${escapeHtml(v.fullName)}</td>
+            <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px;">${escapeHtml(v.phone)}</td>
+            <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px;">${escapeHtml(v.email)}</td>
+            <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px; font-weight:600; color:#0369a1;">${escapeHtml(v.responsibility)}</td>
+          </tr>
+        `).join('');
+
+        reportBodyHtml = `
+          ${headerSectionHtml}
+          <div style="text-align:center; margin-bottom:16px;">
+            <h2 style="margin:0; font-size:18px; font-weight:800; color:#0369a1; text-transform:uppercase;">
+              ২. স্বেচ্ছাসেবক তালিকা (Volunteer List)
+            </h2>
+            <div style="font-size:13px; color:#475569; margin-top:5px;">মোট উপস্থিত স্বেচ্ছাসেবক: <b>${toBanglaNumber(volunteers.length)} জন</b></div>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+            <thead>
+              <tr style="background:#e2e8f0;">
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center; width:45px;">ক্র.</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">নাম</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">ফোন নম্বর</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">জিমেইল (ইমেইল)</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">কি কাজ করেছে (দায়িত্ব)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${volunteerRows || '<tr><td colspan="5" style="text-align:center; padding:15px;">কোনো স্বেচ্ছাসেবক তালিকাভুক্ত নেই</td></tr>'}
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:space-between; margin-top:36px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
+            <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
+            <div>স্বেচ্ছাসেবক টিম লিডার / সমন্বয়ক স্বাক্ষর: ____________________</div>
+          </div>
+        `;
+      } else if (reportType === 3) {
+        filename = `wcc_doctor_list_${camp.campCode || 'camp'}.pdf`;
+        reportTitle = '৩. চিকিৎসক তালিকা ও রোগী সেবা রিপোর্ট (Doctor List)';
+        orientation = 'portrait';
+
+        const doctorRows = doctors.map((d, idx) => `
+          <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
+            <td style="border:1px solid #94a3b8; padding:9px 10px; text-align:center; font-size:12px;">${toBanglaNumber(idx + 1)}</td>
+            <td style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; font-weight:700;">${escapeHtml(d.doctorName)}</td>
+            <td style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px;">${escapeHtml(d.phone)}</td>
+            <td style="border:1px solid #94a3b8; padding:9px 10px; text-align:center; font-size:12px; font-weight:800; color:#0369a1;">
+              ${toBanglaNumber(d.patientsSeenCount || d.totalConsultations || 0)} জন
+            </td>
+          </tr>
+        `).join('');
+
+        reportBodyHtml = `
+          ${headerSectionHtml}
+          <div style="text-align:center; margin-bottom:16px;">
+            <h2 style="margin:0; font-size:18px; font-weight:800; color:#0369a1; text-transform:uppercase;">
+              ৩. চিকিৎসক তালিকা ও রোগী সেবা রিপোর্ট (Doctor List)
+            </h2>
+            <div style="font-size:13px; color:#475569; margin-top:5px;">মোট উপস্থিত চিকিৎসক: <b>${toBanglaNumber(doctors.length)} জন</b></div>
+          </div>
+
+          <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
+            <thead>
+              <tr style="background:#e2e8f0;">
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center; width:45px;">ক্র.</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">চিকিৎসকের নাম</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">ফোন নম্বর</th>
+                <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center;">কতজন রোগী দেখেছেন</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${doctorRows || '<tr><td colspan="4" style="text-align:center; padding:15px;">কোনো চিকিৎসক তালিকাভুক্ত নেই</td></tr>'}
+            </tbody>
+          </table>
+
+          <div style="display:flex; justify-content:space-between; margin-top:36px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
+            <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
+            <div>মেডিকেল টিম সমন্বয়ক / সুপারভাইজার স্বাক্ষর: ____________________</div>
+          </div>
+        `;
+      }
+
+      return {
+        filename,
+        reportTitle,
+        orientation,
+        reportBodyHtml
+      };
+    }
+
     /**
      * Download individual PDF reports (1 = Patient & Summary, 2 = Volunteers, 3 = Doctors)
-     * Triggers DIRECT browser file download (.pdf file)
      */
     async function downloadReportPDF(reportType) {
       const btn = document.getElementById(`btn-pdf-${reportType}`);
-      const originalText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = '<span>⏳ পিডিএফ তৈরি হচ্ছে...</span>';
+      const originalText = btn ? btn.innerHTML : '';
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span>⏳ পিডিএফ তৈরি হচ্ছে...</span>';
+      }
+
+      let printContainer = null;
+      try {
+        const report = await prepareReportData(reportType);
+        if (!report) return;
+
+        // Render in an off-screen container mounted to document body for accurate layout & fonts
+        printContainer = document.createElement('div');
+        printContainer.id = 'temp-pdf-render-box';
+        printContainer.style.position = 'fixed';
+        printContainer.style.left = '-10000px';
+        printContainer.style.top = '0';
+        printContainer.style.width = report.orientation === 'landscape' ? '1120px' : '794px';
+        printContainer.style.background = '#ffffff';
+        printContainer.style.color = '#0f172a';
+        printContainer.style.fontFamily = "'Hind Siliguri', 'Segoe UI', Arial, sans-serif";
+        printContainer.style.padding = '24px';
+        printContainer.style.boxSizing = 'border-box';
+        printContainer.innerHTML = report.reportBodyHtml;
+        document.body.appendChild(printContainer);
+
+        const hasHtml2Pdf = await ensureHtml2Pdf();
+        if (hasHtml2Pdf && window.html2pdf) {
+          const opt = {
+            margin: report.orientation === 'landscape' ? [6, 6, 6, 6] : [8, 8, 8, 8],
+            filename: report.filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: {
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              logging: false,
+              windowWidth: report.orientation === 'landscape' ? 1200 : 900
+            },
+            jsPDF: {
+              unit: 'mm',
+              format: 'a4',
+              orientation: report.orientation
+            }
+          };
+
+          await html2pdf().set(opt).from(printContainer).save();
+          showToast(`পিডিএফ "${report.filename}" সফলভাবে ডাউনলোড হয়েছে!`, 'success');
+        } else {
+          printReportViaWindow(report.reportBodyHtml, report.reportTitle, report.orientation);
+        }
+      } catch (err) {
+        console.warn('html2pdf direct generation failed, triggering browser print fallback:', err);
+        try {
+          const report = await prepareReportData(reportType);
+          if (report) {
+            printReportViaWindow(report.reportBodyHtml, report.reportTitle, report.orientation);
+            showToast('ব্রাউজারের প্রিন্ট উইন্ডো খোলা হয়েছে। "Save as PDF" নির্বাচন করে সংরক্ষণ করুন।', 'info');
+          }
+        } catch (e) {
+          showToast('পিডিএফ তৈরিতে সমস্যা: ' + err.message, 'error');
+        }
+      } finally {
+        if (printContainer) {
+          printContainer.remove();
+        }
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
+      }
+    }
+
+    /**
+     * Browser Print / Save as PDF Fallback Window
+     */
+    async function printReport(reportType) {
+      try {
+        const report = await prepareReportData(reportType);
+        if (report) {
+          printReportViaWindow(report.reportBodyHtml, report.reportTitle, report.orientation);
+        }
+      } catch (err) {
+        showToast('প্রিন্ট উইন্ডো খুলতে সমস্যা: ' + err.message, 'error');
+      }
+    }
+
+    function printReportViaWindow(htmlContent, title, orientation) {
+      const printWindow = window.open('', '_blank', 'width=1050,height=800');
+      if (!printWindow) {
+        showToast('ব্রাউজারের পপআপ ব্লক করা রয়েছে। অনুগ্রহ করে পপআপ এলাউ করুন।', 'warning');
+        return;
+      }
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="bn">
+        <head>
+          <meta charset="UTF-8">
+          <title>${escapeHtml(title)}</title>
+          <style>
+            @page {
+              size: A4 ${orientation};
+              margin: 10mm;
+            }
+            body {
+              font-family: 'Hind Siliguri', 'Segoe UI', Tahoma, Arial, sans-serif;
+              margin: 0;
+              padding: 16px;
+              color: #0f172a;
+              background: #ffffff;
+            }
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              margin-bottom: 16px;
+            }
+            th, td {
+              border: 1px solid #94a3b8;
+              padding: 7px 9px;
+            }
+            @media print {
+              button { display: none !important; }
+            }
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+          <script>
+            window.onload = function() {
+              setTimeout(function() {
+                window.print();
+              }, 350);
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+
+    /**
+     * Export complete camp data as XLSX or CSV
+     */
+    async function exportCampFile(format) {
+      const select = document.getElementById('report-camp-select');
+      const campId = select?.value || currentCampId;
+      if (!campId) {
+        showToast('অনুগ্রহ করে প্রথমে একটি স্বাস্থ্য ক্যাম্প নির্বাচন করুন', 'error');
+        return;
+      }
 
       try {
-        // Ensure data is ready
-        if (!currentCampData) {
-          const select = document.getElementById('report-camp-select');
-          const campId = select?.value || currentCampId;
-          if (campId) {
-            const res = await apiFetch(`/api/camps/${campId}/reports/summary`);
-            if (res && res.success) {
-              currentCampData = res.data;
-              renderReportsOnPage(currentCampData);
-            }
-          }
+        showToast(`${format.toUpperCase()} ফাইল প্রস্তুত হচ্ছে...`, 'info');
+        const token = typeof localStorage !== 'undefined' ? localStorage.getItem('wcc_token') : null;
+        const url = getApiUrl(`/api/camps/${campId}/reports/export?format=${format}`);
+
+        const headers = {};
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+
+        const response = await fetch(url, { headers, credentials: 'include' });
+        if (!response.ok) {
+          const errJson = await response.json().catch(() => ({}));
+          throw new Error(errJson.message || 'ফাইল ডাউনলোড ব্যর্থ হয়েছে');
         }
 
-        if (!currentCampData) {
-          showToast('ক্যাম্পের তথ্য পাওয়া যায়নি, অনুগ্রহ করে ক্যাম্প নির্বাচন করুন', 'error');
-          return;
-        }
-
-        const camp = currentCampData.camp || {};
-        const summary = currentCampData.summary || {};
-        const patients = currentCampData.patients || [];
-        const volunteers = currentCampData.volunteers || [];
-        const doctors = currentCampData.doctors || [];
-
-        const campDateStr = camp.date ? new Date(camp.date).toLocaleDateString('bn-BD') : '';
-        const campVenueStr = [camp.venue, camp.upazila, camp.district].filter(Boolean).join(', ');
-
-        let filename = '';
-        let reportTitle = '';
-        let orientation = 'portrait';
-        let reportBodyHtml = '';
-
-        // Header Section
-        const headerSectionHtml = `
-          <div style="border-bottom: 2px solid #0284c7; padding-bottom: 12px; margin-bottom: 16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <h1 style="margin:0; font-size:22px; color:#0f172a; font-weight:800;">উই ক্যান চেঞ্জ (We Can Change - WCC)</h1>
-                <div style="font-size:14px; color:#0284c7; font-weight:700; margin-top:3px;">শিশু স্বাস্থ্য রেজিস্ট্রি ও স্বাস্থ্য সেবা কার্যক্রম</div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:12px; color:#334155;">ক্যাম্প কোড: <b>${escapeHtml(camp.campCode || 'N/A')}</b></div>
-                <div style="font-size:12px; color:#334155;">তারিখ: <b>${escapeHtml(campDateStr)}</b></div>
-              </div>
-            </div>
-            <div style="margin-top:10px; font-size:13px; color:#1e293b; background:#f1f5f9; padding:8px 12px; border-radius:4px; border:1px solid #cbd5e1;">
-              <b>ক্যাম্পের নাম:</b> ${escapeHtml(camp.name)} &nbsp;|&nbsp; <b>স্থান:</b> ${escapeHtml(campVenueStr)}
-            </div>
-          </div>
-        `;
-
-        if (reportType === 1) {
-          // REPORT 1: Patient & Camp Summary Report
-          filename = `wcc_patient_summary_report_${camp.campCode || 'camp'}.pdf`;
-          reportTitle = '১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)';
-          orientation = 'landscape';
-
-          const patientsRows = patients.map((p, idx) => `
-            <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-              <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px;">${toBanglaNumber(idx + 1)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px; font-weight:700;">${escapeHtml(p.patientName)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.age)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.guardianName)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.phone)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px; font-weight:600;">${escapeHtml(p.doctorName)}</td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:${p.isReferred === 'Yes' ? '#15803d' : '#64748b'};">
-                ${p.isReferred === 'Yes' ? 'Yes' : 'No'}
-              </td>
-              <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.referredTo)}</td>
-            </tr>
-          `).join('');
-
-          reportBodyHtml = `
-            ${headerSectionHtml}
-            <div style="text-align:center; margin-bottom:14px;">
-              <h2 style="margin:0; font-size:17px; font-weight:800; color:#0369a1; text-transform:uppercase;">
-                ১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)
-              </h2>
-            </div>
-
-            <!-- Summary Box -->
-            <div style="display:flex; justify-content:space-around; background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:12px; margin-bottom:16px;">
-              <div style="text-align:center;">
-                <div style="font-size:13px; color:#475569; font-weight:600;">মোট রোগী দেখা হয়েছে</div>
-                <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalPatientsSeen || 0)} জন</div>
-              </div>
-              <div style="border-left:1px solid #bae6fd;"></div>
-              <div style="text-align:center;">
-                <div style="font-size:13px; color:#475569; font-weight:600;">কতজন ভলান্টিয়ার ছিল</div>
-                <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalVolunteers || 0)} জন</div>
-              </div>
-              <div style="border-left:1px solid #bae6fd;"></div>
-              <div style="text-align:center;">
-                <div style="font-size:13px; color:#475569; font-weight:600;">কতজন ডাক্তার ছিল</div>
-                <div style="font-size:20px; font-weight:800; color:#0369a1;">${toBanglaNumber(summary.totalDoctors || 0)} জন</div>
-              </div>
-            </div>
-
-            <!-- Patient Table -->
-            <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
-              <thead>
-                <tr style="background:#e2e8f0;">
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center; width:40px;">ক্র.</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">রোগীর নাম</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">বয়স</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">পিতা / অভিভাবকের নাম</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">ফোন নম্বর</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">কোন ডাক্তার দেখেছেন</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">রেফারেল (Yes/No)</th>
-                  <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">রেফারেল গন্তব্য</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${patientsRows || '<tr><td colspan="8" style="text-align:center; padding:15px;">কোনো রেকর্ড নেই</td></tr>'}
-              </tbody>
-            </table>
-
-            <div style="display:flex; justify-content:space-between; margin-top:28px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
-              <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
-              <div>দায়িত্বপ্রাপ্ত কর্মকর্তা / ক্যাম্প সমন্বয়ক স্বাক্ষর: ____________________</div>
-            </div>
-          `;
-        } else if (reportType === 2) {
-          // REPORT 2: Volunteer List Report
-          filename = `wcc_volunteer_list_${camp.campCode || 'camp'}.pdf`;
-          reportTitle = '২. স্বেচ্ছাসেবক তালিকা (Volunteer List)';
-          orientation = 'portrait';
-
-          const volunteerRows = volunteers.map((v, idx) => `
-            <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-              <td style="border:1px solid #94a3b8; padding:8px 10px; text-align:center; font-size:12px;">${toBanglaNumber(idx + 1)}</td>
-              <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px; font-weight:700;">${escapeHtml(v.fullName)}</td>
-              <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px;">${escapeHtml(v.phone)}</td>
-              <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px;">${escapeHtml(v.email)}</td>
-              <td style="border:1px solid #94a3b8; padding:8px 10px; font-size:12px; font-weight:600; color:#0369a1;">${escapeHtml(v.responsibility)}</td>
-            </tr>
-          `).join('');
-
-          reportBodyHtml = `
-            ${headerSectionHtml}
-            <div style="text-align:center; margin-bottom:16px;">
-              <h2 style="margin:0; font-size:18px; font-weight:800; color:#0369a1; text-transform:uppercase;">
-                ২. স্বেচ্ছাসেবক তালিকা (Volunteer List)
-              </h2>
-              <div style="font-size:13px; color:#475569; margin-top:5px;">মোট উপস্থিত স্বেচ্ছাসেবক: <b>${toBanglaNumber(volunteers.length)} জন</b></div>
-            </div>
-
-            <!-- Volunteer Table -->
-            <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
-              <thead>
-                <tr style="background:#e2e8f0;">
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center; width:45px;">ক্র.</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">নাম</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">ফোন নম্বর</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">জিমেইল (ইমেইল)</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">কি কাজ করেছে (দায়িত্ব)</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${volunteerRows || '<tr><td colspan="5" style="text-align:center; padding:15px;">কোনো স্বেচ্ছাসেবক তালিকাভুক্ত নেই</td></tr>'}
-              </tbody>
-            </table>
-
-            <div style="display:flex; justify-content:space-between; margin-top:36px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
-              <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
-              <div>স্বেচ্ছাসেবক টিম লিডার / সমন্বয়ক স্বাক্ষর: ____________________</div>
-            </div>
-          `;
-        } else if (reportType === 3) {
-          // REPORT 3: Doctor List Report
-          filename = `wcc_doctor_list_${camp.campCode || 'camp'}.pdf`;
-          reportTitle = '৩. চিকিৎসক তালিকা ও রোগী সেবা রিপোর্ট (Doctor List)';
-          orientation = 'portrait';
-
-          const doctorRows = doctors.map((d, idx) => `
-            <tr style="background:${idx % 2 === 0 ? '#ffffff' : '#f8fafc'};">
-              <td style="border:1px solid #94a3b8; padding:9px 10px; text-align:center; font-size:12px;">${toBanglaNumber(idx + 1)}</td>
-              <td style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; font-weight:700;">${escapeHtml(d.doctorName)}</td>
-              <td style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px;">${escapeHtml(d.phone)}</td>
-              <td style="border:1px solid #94a3b8; padding:9px 10px; text-align:center; font-size:12px; font-weight:800; color:#0369a1;">
-                ${toBanglaNumber(d.patientsSeenCount || d.totalConsultations || 0)} জন
-              </td>
-            </tr>
-          `).join('');
-
-          reportBodyHtml = `
-            ${headerSectionHtml}
-            <div style="text-align:center; margin-bottom:16px;">
-              <h2 style="margin:0; font-size:18px; font-weight:800; color:#0369a1; text-transform:uppercase;">
-                ৩. চিকিৎসক তালিকা ও রোগী সেবা রিপোর্ট (Doctor List)
-              </h2>
-              <div style="font-size:13px; color:#475569; margin-top:5px;">মোট উপস্থিত চিকিৎসক: <b>${toBanglaNumber(doctors.length)} জন</b></div>
-            </div>
-
-            <!-- Doctor Table -->
-            <table style="width:100%; border-collapse:collapse; margin-bottom:16px;">
-              <thead>
-                <tr style="background:#e2e8f0;">
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center; width:45px;">ক্র.</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">চিকিৎসকের নাম</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:left;">ফোন নম্বর</th>
-                  <th style="border:1px solid #94a3b8; padding:9px 10px; font-size:12px; text-align:center;">কতজন রোগী দেখেছেন</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${doctorRows || '<tr><td colspan="4" style="text-align:center; padding:15px;">কোনো চিকিৎসক তালিকাভুক্ত নেই</td></tr>'}
-              </tbody>
-            </table>
-
-            <div style="display:flex; justify-content:space-between; margin-top:36px; font-size:11px; color:#64748b; border-top:1px dashed #cbd5e1; padding-top:12px;">
-              <div>মুদ্রণ সময়: ${new Date().toLocaleString('bn-BD')} | WCC চাইল্ড হেলথ সিস্টেম</div>
-              <div>মেডিকেল টিম সমন্বয়ক / সুপারভাইজার স্বাক্ষর: ____________________</div>
-            </div>
-          `;
-        }
-
-        // Complete HTML container wrapper with explicit width and font styling
-        const reportWrapperHtml = `
-          <div style="width: ${orientation === 'landscape' ? '1060px' : '780px'}; padding: 16px 20px; background: #ffffff; color: #0f172a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; box-sizing: border-box;">
-            ${reportBodyHtml}
-          </div>
-        `;
-
-        const opt = {
-          margin: orientation === 'landscape' ? [6, 6, 6, 6] : [8, 8, 8, 8],
-          filename: filename,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            letterRendering: true
-          },
-          jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: orientation
-          }
-        };
-
-        // Generate and directly trigger browser file download
-        await html2pdf().set(opt).from(reportWrapperHtml).save();
-
-        showToast(`পিডিএফ "${filename}" সফলভাবে ডাউনলোড হয়েছে!`, 'success');
-
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = `wcc_camp_report_${campId}.${format}`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        showToast(`${format.toUpperCase()} রিপোর্ট সফলভাবে ডাউনলোড হয়েছে!`, 'success');
       } catch (err) {
-        console.error('PDF error:', err);
-        showToast('পিডিএফ তৈরিতে সমস্যা: ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = originalText;
+        showToast('এক্সপোর্ট ত্রুটি: ' + err.message, 'error');
       }
     }
   </script>

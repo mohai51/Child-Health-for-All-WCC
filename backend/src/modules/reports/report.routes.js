@@ -7,9 +7,9 @@ const router = express.Router({ mergeParams: true });
 
 router.use(authenticate);
 
-// Reports accessible to Super Admin and Camp Coordinators (and Doctors for viewing)
+// Reports accessible to Super Admin, Camp Coordinators, and Doctors
 router.get('/summary', getSummaryReport);
 router.get('/doctors', getDoctorsReport);
-router.get('/export', requireRoles('SUPER_ADMIN', 'CAMP_COORDINATOR'), exportCampReport);
+router.get('/export', requireRoles('SUPER_ADMIN', 'CAMP_COORDINATOR', 'DOCTOR'), exportCampReport);
 
 module.exports = router;
