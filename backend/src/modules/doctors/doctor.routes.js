@@ -1,6 +1,6 @@
 const express = require('express');
 const { z } = require('zod');
-const { getDoctors, createDoctor, getDoctorById, updateDoctor } = require('./doctor.controller');
+const { getDoctors, createDoctor, getDoctorById, updateDoctor, deleteDoctor } = require('./doctor.controller');
 const { authenticate } = require('../../middleware/auth.middleware');
 const { requireRoles } = require('../../middleware/rbac.middleware');
 const validate = require('../../middleware/validate.middleware');
@@ -29,5 +29,6 @@ router.get('/', getDoctors);
 router.post('/', requireRoles('SUPER_ADMIN'), validate(createDoctorSchema), createDoctor);
 router.get('/:doctorId', getDoctorById);
 router.patch('/:doctorId', updateDoctor);
+router.delete('/:doctorId', requireRoles('SUPER_ADMIN'), deleteDoctor);
 
 module.exports = router;

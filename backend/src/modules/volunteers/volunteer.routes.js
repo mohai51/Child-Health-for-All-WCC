@@ -1,6 +1,6 @@
 const express = require('express');
 const { z } = require('zod');
-const { getVolunteers, createVolunteer, updateVolunteer } = require('./volunteer.controller');
+const { getVolunteers, createVolunteer, updateVolunteer, deleteVolunteer } = require('./volunteer.controller');
 const { authenticate } = require('../../middleware/auth.middleware');
 const { requireRoles } = require('../../middleware/rbac.middleware');
 const validate = require('../../middleware/validate.middleware');
@@ -30,5 +30,6 @@ router.use(authenticate);
 router.get('/', getVolunteers);
 router.post('/', requireRoles('SUPER_ADMIN'), validate(createVolunteerSchema), createVolunteer);
 router.patch('/:volunteerId', requireRoles('SUPER_ADMIN'), updateVolunteer);
+router.delete('/:volunteerId', requireRoles('SUPER_ADMIN'), deleteVolunteer);
 
 module.exports = router;

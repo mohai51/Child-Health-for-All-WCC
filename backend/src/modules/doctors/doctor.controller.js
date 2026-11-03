@@ -410,9 +410,60 @@ async function updateDoctor(req, res) {
   }
 }
 
+// Delete doctor profile and linked user account (Super Admin only)
+async function deleteDoctor(req, res) {
+  try {
+    const { doctorId } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(doctorId)) {
+      return res.status(400).json({ success: false, message: 'চিকিৎসক আইডি সঠিক নয়' });
+    }
+
+    const doctor = await Doctor.findById(doctorId);
+    if (!doctor) {
+      return res.status(404).json({ success: false, message: 'চিকিৎসক পাওয়া যায়নি (Doctor not found)' });
+    }
+
+    // 1. Delete linked User account if exists
+    if (doctor.userId) {
+      await User.findByIdAndDelete(doctor.userId);
+    }
+
+    // 2. Delete camp member assignments
+    const CampMember = require('../camps/campMember.model');
+    await CampMember.deleteMany({ doctorId: doctor._id });
+
+    // 3. Delete doctor record
+    await Doctor.findByIdAndDelete(doctorId);
+
+    await logAuditEvent({
+      actorId: req.user?._id || null,
+      actorRole: req.user?.role || 'SUPER_ADMIN',
+      action: 'DOCTOR_DELETE',
+      resourceType: 'Doctor',
+      resourceId: doctor._id,
+      result: 'SUCCESS',
+      req,
+      metadata: { doctorId: doctor._id, fullName: doctor.fullName }
+    });
+
+    return res.json({
+      success: true,
+      message: `${doctor.fullName} চিকিৎসককে সফলভাবে মুছে ফেলা হয়েছে`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'চিকিৎসক ডিলিট করতে সমস্যা হয়েছে: ' + error.message,
+      error: error.message
+    });
+  }
+}
+
 module.exports = {
   getDoctors,
   createDoctor,
   getDoctorById,
-  updateDoctor
+  updateDoctor,
+  deleteDoctor
 };

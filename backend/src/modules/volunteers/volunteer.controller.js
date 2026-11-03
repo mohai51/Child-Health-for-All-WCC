@@ -305,8 +305,63 @@ async function updateVolunteer(req, res) {
   }
 }
 
+// Delete volunteer and linked user account (Super Admin only)
+async function deleteVolunteer(req, res) {
+  try {
+    const { volunteerId } = req.params;
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(volunteerId)) {
+      return res.status(400).json({ success: false, message: 'স্বেচ্ছাসেবক আইডি সঠিক নয়' });
+    }
+
+    const volunteer = await Volunteer.findById(volunteerId);
+    if (!volunteer) {
+      return res.status(404).json({ success: false, message: 'স্বেচ্ছাসেবক পাওয়া যায়নি (Volunteer not found)' });
+    }
+
+    // 1. Delete linked User account if exists
+    if (volunteer.userId) {
+      await User.findByIdAndDelete(volunteer.userId);
+    }
+
+    // 2. Delete camp member assignments
+    await CampMember.deleteMany({
+      $or: [
+        { volunteerId: volunteer._id },
+        ...(volunteer.userId ? [{ userId: volunteer.userId }] : [])
+      ]
+    });
+
+    // 3. Delete volunteer record
+    await Volunteer.findByIdAndDelete(volunteerId);
+
+    await logAuditEvent({
+      actorId: req.user?._id || null,
+      actorRole: req.user?.role || 'SUPER_ADMIN',
+      action: 'VOLUNTEER_DELETE',
+      resourceType: 'Volunteer',
+      resourceId: volunteer._id,
+      result: 'SUCCESS',
+      req,
+      metadata: { volunteerId: volunteer._id, fullName: volunteer.fullName }
+    });
+
+    return res.json({
+      success: true,
+      message: `${volunteer.fullName} স্বেচ্ছাসেবককে সফলভাবে মুছে ফেলা হয়েছে`
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: 'স্বেচ্ছাসেবক ডিলিট করতে সমস্যা হয়েছে: ' + error.message,
+      error: error.message
+    });
+  }
+}
+
 module.exports = {
   getVolunteers,
   createVolunteer,
-  updateVolunteer
+  updateVolunteer,
+  deleteVolunteer
 };
