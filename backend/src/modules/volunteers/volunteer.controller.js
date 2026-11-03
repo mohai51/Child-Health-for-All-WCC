@@ -182,7 +182,7 @@ async function createVolunteer(req, res) {
       await CampMember.findOneAndUpdate(
         { campId: cleanAssignedCampId, volunteerId: volunteer._id },
         {
-          campId: assignedCampId,
+          campId: cleanAssignedCampId,
           volunteerId: volunteer._id,
           userId: createdUser ? createdUser._id : null,
           campRole: responsibility === 'Coordination' ? 'COORDINATOR' : 'VOLUNTEER',

@@ -12,7 +12,7 @@ const createVolunteerSchema = z.object({
     fullName: z.string().min(3, 'স্বেচ্ছাসেবকের নাম দিন (Name required)'),
     phone: z.string().min(6, 'মোবাইল নম্বর দিন (Phone required)'),
     email: z.string().email().optional().or(z.literal('')),
-    password: z.string().optional(),
+    password: z.string().optional().or(z.literal('')),
     responsibility: z.enum([
       'Registration Desk',
       'Doctor Assistant',
@@ -21,7 +21,8 @@ const createVolunteerSchema = z.object({
       'General Support'
     ]),
     createLoginAccount: z.boolean().optional(),
-    profileImageAssetId: z.string().optional()
+    profileImageAssetId: z.string().optional().nullable(),
+    assignedCampId: z.string().optional().nullable()
   })
 });
 
