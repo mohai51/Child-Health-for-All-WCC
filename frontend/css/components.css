@@ -232,7 +232,7 @@
 /* Camp Cards Grid */
 .camps-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
@@ -778,11 +778,11 @@
 
 /* Developer Profile Modal Styling */
 .dev-modal-card {
-  max-width: 440px !important;
-  border-radius: 14px !important;
+  max-width: 440px;
+  border-radius: 14px;
   overflow: hidden;
-  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25) !important;
-  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+  border: 1px solid #e2e8f0;
   animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   background: #ffffff;
 }

@@ -25,7 +25,7 @@
     modal.className = 'modal-overlay';
     modal.style.zIndex = '10099';
     modal.innerHTML = `
-      <div class="modal-content dev-modal-card" style="padding: 0; max-width: 440px;">
+      <div class="modal-content dev-modal-card" style="padding: 0;">
         <div class="dev-profile-hero">
           <button type="button" class="modal-close" onclick="closeDeveloperModal()" style="position:absolute; top:12px; right:12px; color:#ffffff; background:rgba(255,255,255,0.15); border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; padding:0; font-size:1.3rem;" title="বন্ধ করুন">&times;</button>
           
@@ -158,3 +158,4 @@
     injectFooter();
   }
 })();
+

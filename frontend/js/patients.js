@@ -359,7 +359,7 @@ function renderPatientSlip(data) {
         <b>জরুরি নির্দেশনা:</b> এই রোগী আইডি (${patient.patientId}) অভিভাবকের হাতে প্রদান করুন। শিশু রোগী এই টোকেন আইডি দিয়ে ক্যাম্পে দায়িত্বরত যেকোনো চিকিৎসকের কাছে সরাসরি সেবা গ্রহণ করতে পারবেন।
       </div>
 
-      <div class="no-print" style="margin-top: 20px; display: flex; justify-content: center; gap: 12px;">
+      <div class="no-print slip-actions" style="margin-top: 20px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
         <button onclick="window.print()" class="btn btn-primary">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
           স্লিপ প্রিন্ট করুন

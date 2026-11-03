@@ -232,7 +232,7 @@ function initMobileMenu() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function bootstrapAuthUI() {
   initMobileMenu();
   const logoutBtn = document.getElementById('logout-btn');
   if (logoutBtn) {
@@ -241,4 +241,10 @@ document.addEventListener('DOMContentLoaded', () => {
       logout();
     });
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', bootstrapAuthUI);
+} else {
+  bootstrapAuthUI();
+}
