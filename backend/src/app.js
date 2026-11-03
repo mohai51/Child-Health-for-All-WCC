@@ -115,14 +115,38 @@ app.use('/api/audit', auditRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
 // Health check endpoint with DB diagnostic status
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
   const mongoose = require('mongoose');
   const states = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  const dbState = states[mongoose.connection.readyState] || 'unknown';
-  res.json({
-    status: 'healthy',
-    database: dbState,
-    dbReady: mongoose.connection.readyState === 1,
+
+  let connectionError = null;
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      const { connectDB } = require('./config/database');
+      await connectDB();
+    } catch (e) {
+      connectionError = e.message;
+    }
+  }
+
+  const rawUri = process.env.MONGODB_URI || '';
+  const uriSafe = rawUri
+    ? rawUri.replace(/:([^@]+)@/, ':****@')
+    : 'NOT_FOUND_IN_ENV';
+
+  const isConnected = mongoose.connection.readyState === 1;
+
+  res.status(isConnected ? 200 : 503).json({
+    status: isConnected ? 'healthy' : 'database_unavailable',
+    database: states[mongoose.connection.readyState] || 'unknown',
+    dbReady: isConnected,
+    connectionError,
+    envCheck: {
+      hasMongodbUri: Boolean(rawUri),
+      uriSafePreview: uriSafe.substring(0, 40) + '...',
+      nodeEnv: process.env.NODE_ENV || 'not_set',
+      isVercel: Boolean(process.env.VERCEL)
+    },
     organization: 'We Can Change (WCC)',
     project: 'WCC Child Health Registry & Multi-Camp Management System',
     timestamp: new Date().toISOString()
