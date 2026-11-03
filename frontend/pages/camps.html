@@ -170,7 +170,7 @@
         <h3 style="font-size:1.25rem; color:var(--primary); font-weight:800; margin:0; display:flex; align-items:center; gap:8px;">
           🏥 নতুন স্বাস্থ্য ক্যাম্প তৈরি করুন
         </h3>
-        <button type="button" onclick="closeModal('create-camp-modal')" style="background:none; border:none; font-size:1.6rem; cursor:pointer; color:#64748b; line-height:1;">&times;</button>
+        <button type="button" class="modal-close" onclick="closeModal('create-camp-modal')" style="background:none; border:none; font-size:1.6rem; cursor:pointer; color:#64748b; line-height:1;" title="বন্ধ করুন">&times;</button>
       </div>
       <form id="create-camp-form">
         <div class="modal-body" style="padding: 24px;">
@@ -236,7 +236,7 @@
     <div class="modal-content" style="max-width:440px;">
       <div class="modal-header">
         <h3 id="confirm-modal-title" style="font-size:1.15rem; color:var(--text-main);">নিশ্চিতকরণ</h3>
-        <button onclick="closeModal('camp-confirm-modal')" style="background:none; border:none; font-size:1.3rem; cursor:pointer;">&times;</button>
+        <button type="button" class="modal-close" onclick="closeModal('camp-confirm-modal')" style="background:none; border:none; font-size:1.6rem; cursor:pointer; color:#64748b; line-height:1;" title="বন্ধ করুন">&times;</button>
       </div>
       <div class="modal-body">
         <p id="confirm-modal-message" style="font-size:0.95rem; color:var(--text-main); line-height:1.5;">আপনি কি নিশ্চিত?</p>
@@ -248,8 +248,8 @@
     </div>
   </div>
 
-  <script src="/js/api.js?v=20261103_0525"></script>
-  <script src="/js/auth.js?v=20261103_0525"></script>
+  <script src="/js/api.js?v=20261103_1425"></script>
+  <script src="/js/auth.js?v=20261103_1425"></script>
   <script src="/js/bangladesh-geo.js?v=20261103_0525"></script>
   <script src="/js/camps.js?v=20261103_0525"></script>
 </body>

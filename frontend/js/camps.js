@@ -10,7 +10,7 @@ let currentSearchQuery = '';
 
 // Modal helpers - globally exposed
 window.openModal = function(id) {
-  const modal = document.getElementById(id);
+  const modal = typeof id === 'string' ? document.getElementById(id) : id;
   if (modal) {
     modal.classList.add('active');
     modal.style.display = 'flex';
@@ -18,7 +18,7 @@ window.openModal = function(id) {
 };
 
 window.closeModal = function(id) {
-  const modal = document.getElementById(id);
+  const modal = typeof id === 'string' ? document.getElementById(id) : id;
   if (modal) {
     modal.classList.remove('active');
     modal.style.display = 'none';

@@ -647,6 +647,24 @@
   transform: translateY(-2px);
 }
 
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s ease;
+  pointer-events: auto !important;
+}
+
+.modal-close:hover {
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
 .toast-close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
@@ -662,6 +680,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
+  pointer-events: auto !important;
 }
 
 .toast-close-btn:hover {

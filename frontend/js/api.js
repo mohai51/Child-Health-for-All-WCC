@@ -10,6 +10,18 @@ function getCookie(name) {
   return null;
 }
 
+// Global HTML escaper to prevent XSS and rendering errors
+function escapeHtml(text) {
+  if (text === null || text === undefined) return '';
+  return String(text)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+window.escapeHtml = escapeHtml;
+
 // Global Toast Notifications with instant close button
 function showToast(message, type = 'info') {
   let container = document.getElementById('toast-container');
@@ -21,30 +33,34 @@ function showToast(message, type = 'info') {
 
   const toast = document.createElement('div');
   toast.className = `toast ${type}`;
-  toast.style.cursor = 'pointer';
+  toast.setAttribute('role', 'alert');
+  toast.style.cssText = 'pointer-events: auto !important; cursor: pointer;';
   toast.innerHTML = `
-    <span style="flex:1; margin-right:8px;">${message}</span>
-    <button type="button" class="toast-close-btn" aria-label="বন্ধ করুন" title="বন্ধ করুন">&times;</button>
+    <span style="flex:1; margin-right:8px; pointer-events:auto;">${escapeHtml(message)}</span>
+    <button type="button" class="toast-close-btn" aria-label="বন্ধ করুন" title="বন্ধ করুন" style="pointer-events:auto !important; cursor:pointer;" onclick="event.stopPropagation(); this.closest('.toast').remove();">&times;</button>
   `;
 
   const closeToast = (e) => {
-    if (e) {
-      e.stopPropagation();
-      e.preventDefault();
+    if (e && e.stopPropagation) e.stopPropagation();
+    try {
+      toast.remove();
+    } catch (err) {
+      toast.style.display = 'none';
     }
-    toast.style.opacity = '0';
-    toast.style.transform = 'translateY(10px)';
-    setTimeout(() => toast.remove(), 250);
   };
 
   const closeBtn = toast.querySelector('.toast-close-btn');
   if (closeBtn) closeBtn.addEventListener('click', closeToast);
-  toast.addEventListener('click', closeToast);
+  toast.addEventListener('click', (e) => {
+    if (e.target.closest('.toast-close-btn') || e.target === toast) {
+      closeToast(e);
+    }
+  });
 
   container.appendChild(toast);
   setTimeout(() => {
     if (toast.parentElement) closeToast();
-  }, 4000);
+  }, 4500);
 }
 
 // Global Modal Helpers to open & close any popup/modal
@@ -67,14 +83,26 @@ window.closeModal = function(modalId) {
 // Global click-to-close handlers for any modal or overlay
 if (typeof document !== 'undefined') {
   document.addEventListener('click', (e) => {
-    // Backdrop click
-    if (e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal')) {
-      window.closeModal(e.target);
+    // 1. Toast close button
+    const toastBtn = e.target.closest('.toast-close-btn');
+    if (toastBtn) {
+      e.stopPropagation();
+      const toast = toastBtn.closest('.toast');
+      if (toast) toast.remove();
+      return;
     }
-    // Any button with data-close, close cross, or cancel button in modal
-    if (e.target.closest('.modal-close, [data-close], .btn-close-modal, .close-btn, .close')) {
-      const m = e.target.closest('.modal-overlay, .modal');
+
+    // 2. Modal close cross button in header or anywhere in modal
+    const modalCloseBtn = e.target.closest('.modal-close, [data-close], .btn-close-modal, .close-btn, .close, .modal-header button, button[onclick*="closeModal"]');
+    if (modalCloseBtn) {
+      const m = modalCloseBtn.closest('.modal-overlay, .modal');
       if (m) window.closeModal(m);
+      return;
+    }
+
+    // 3. Modal backdrop click
+    if (e.target.classList && (e.target.classList.contains('modal-overlay') || e.target.classList.contains('modal'))) {
+      window.closeModal(e.target);
     }
   });
 
@@ -83,6 +111,7 @@ if (typeof document !== 'undefined') {
       document.querySelectorAll('.modal-overlay.active, .modal.active, .modal-overlay[style*="display: flex"]').forEach(m => {
         window.closeModal(m);
       });
+      document.querySelectorAll('.toast').forEach(t => t.remove());
     }
   });
 }
