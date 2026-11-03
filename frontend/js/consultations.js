@@ -102,11 +102,57 @@ document.addEventListener('DOMContentLoaded', async () => {
   // View Previous Prescription Button
   const viewPrevBtn = document.getElementById('view-previous-prescription-btn');
   const prevBox = document.getElementById('previous-prescription-preview-box');
+  const prevImg = document.getElementById('previous-prescription-img');
+  const statusEl = document.getElementById('prev-prescription-status');
+  const fullBtn = document.getElementById('open-prev-prescription-full');
+
   if (viewPrevBtn && prevBox) {
-    viewPrevBtn.addEventListener('click', () => {
+    viewPrevBtn.addEventListener('click', async () => {
       if (prevBox.style.display === 'none' || !prevBox.style.display) {
         prevBox.style.display = 'block';
         viewPrevBtn.innerHTML = '✕ প্রেসক্রিপশন লুকান';
+
+        const assetId = viewPrevBtn.dataset.assetId;
+        if (assetId) {
+          if (statusEl) statusEl.innerHTML = '<span style="color:#60A5FA; font-weight:600;">প্রেসক্রিপশন ছবি লোড হচ্ছে...</span>';
+
+          const token = localStorage.getItem('wcc_token') || '';
+          const fullUrl = getApiUrl(`/api/images/${assetId}${token ? `?token=${encodeURIComponent(token)}` : ''}`);
+
+          if (fullBtn) {
+            fullBtn.href = fullUrl;
+            fullBtn.style.display = 'inline-block';
+          }
+
+          try {
+            const response = await fetch(fullUrl, {
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            if (response.ok) {
+              const blob = await response.blob();
+              if (prevImg) {
+                prevImg.src = URL.createObjectURL(blob);
+                prevImg.style.display = 'inline-block';
+              }
+              if (statusEl) statusEl.innerHTML = '<span style="color:#34D399; font-weight:600;">প্রেসক্রিপশন সফলভাবে প্রদর্শিত</span>';
+              setTimeout(() => { if (statusEl) statusEl.innerHTML = ''; }, 2500);
+            } else {
+              if (prevImg) {
+                prevImg.src = fullUrl;
+                prevImg.style.display = 'inline-block';
+              }
+              if (statusEl) statusEl.innerHTML = '';
+            }
+          } catch (e) {
+            if (prevImg) {
+              prevImg.src = fullUrl;
+              prevImg.style.display = 'inline-block';
+            }
+            if (statusEl) statusEl.innerHTML = '';
+          }
+        } else {
+          if (statusEl) statusEl.innerHTML = '<span style="color:#F87171;">কোনো সংরক্ষিত প্রেসক্রিপশন ছবি পাওয়া যায়নি</span>';
+        }
       } else {
         prevBox.style.display = 'none';
         viewPrevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
@@ -121,9 +167,17 @@ async function loadDoctorCamps() {
   if (!campSelect) return;
 
   try {
-    const res = await apiFetch('/api/camps?status=ACTIVE');
+    const res = await apiFetch('/api/camps?status=ACTIVE', { bypassCache: true });
     if (res && res.success && Array.isArray(res.data)) {
       doctorAssignedCamps = res.data;
+      if (doctorAssignedCamps.length === 0) {
+        // Fallback: fetch any camps
+        const fallbackRes = await apiFetch('/api/camps', { bypassCache: true });
+        if (fallbackRes && fallbackRes.success && Array.isArray(fallbackRes.data)) {
+          doctorAssignedCamps = fallbackRes.data;
+        }
+      }
+
       if (doctorAssignedCamps.length === 0) {
         campSelect.innerHTML = '<option value="">-- কোনো সক্রিয় ক্যাম্প নেই --</option>';
         showToast('বর্তমানে কোনো সক্রিয় স্বাস্থ্য ক্যাম্প নেই', 'info');
@@ -161,11 +215,12 @@ async function searchPatientInCamp() {
     const campSelect = document.getElementById('doctor-camp-select');
     if (campSelect && campSelect.value) {
       activeConsultationCampId = campSelect.value;
-    } else {
-      showToast('অনুগ্রহ করে প্রথমে ক্যাম্প নির্বাচন করুন', 'error');
-      return;
+    } else if (doctorAssignedCamps.length > 0) {
+      activeConsultationCampId = doctorAssignedCamps[0]._id;
     }
   }
+
+  const targetCampId = activeConsultationCampId || 'active';
 
   const searchBtn = document.getElementById('search-patient-btn');
   if (searchBtn) {
@@ -174,7 +229,7 @@ async function searchPatientInCamp() {
   }
 
   try {
-    const res = await apiFetch(`/api/camps/${activeConsultationCampId}/consultations/search-patient?patientId=${encodeURIComponent(rawQuery)}`);
+    const res = await apiFetch(`/api/camps/${targetCampId}/consultations/search-patient?patientId=${encodeURIComponent(rawQuery)}`, { bypassCache: true });
     if (res && res.success && res.data) {
       currentPatientData = res.data.patient;
       currentVisitData = res.data.visit;
@@ -227,6 +282,8 @@ function renderPatientDetails(data) {
   const prevBtn = document.getElementById('view-previous-prescription-btn');
   const refBadge = document.getElementById('ac-referral-badge');
   const refDestBox = document.getElementById('ac-referral-dest-box');
+  const statusEl = document.getElementById('prev-prescription-status');
+  const fullBtn = document.getElementById('open-prev-prescription-full');
 
   if (alertBanner) {
     if (data.isAlreadyConsulted) {
@@ -258,28 +315,60 @@ function renderPatientDetails(data) {
         if (refDestBox) refDestBox.style.display = 'none';
       }
 
-      // Check for prescription image
-      if (prevBtn && prevImg) {
-        let assetId = null;
-        if (Array.isArray(c.prescriptionImageAssetIds) && c.prescriptionImageAssetIds.length > 0) {
-          const firstAsset = c.prescriptionImageAssetIds[0];
-          assetId = typeof firstAsset === 'object' ? (firstAsset._id || firstAsset.assetId) : firstAsset;
+      // Check for prescription image safely (avoid null-dereference crashes)
+      let assetId = c.prescriptionAssetId || null;
+      if (!assetId && Array.isArray(c.prescriptionImageAssetIds)) {
+        const validAssets = c.prescriptionImageAssetIds.filter(a => a != null);
+        if (validAssets.length > 0) {
+          const first = validAssets[0];
+          assetId = (typeof first === 'object' && first !== null) ? (first._id || first.assetId || first.id) : first;
         }
+      }
 
+      // If not on completedConsultation, check previousConsultations list
+      if (!assetId && Array.isArray(data.previousConsultations)) {
+        for (const prev of data.previousConsultations) {
+          if (Array.isArray(prev.prescriptionImageAssetIds)) {
+            const valid = prev.prescriptionImageAssetIds.filter(a => a != null);
+            if (valid.length > 0) {
+              const first = valid[0];
+              assetId = (typeof first === 'object' && first !== null) ? (first._id || first.assetId || first.id) : first;
+              if (assetId) break;
+            }
+          }
+        }
+      }
+
+      if (prevBtn) {
         if (assetId) {
-          prevBtn.style.display = 'inline-block';
+          prevBtn.style.display = 'inline-flex';
+          prevBtn.dataset.assetId = String(assetId);
           prevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
-          prevImg.src = `/api/images/${assetId}`;
         } else {
           prevBtn.style.display = 'none';
+          prevBtn.dataset.assetId = '';
         }
       }
 
       if (prevBox) prevBox.style.display = 'none';
+      if (prevImg) {
+        prevImg.src = '';
+        prevImg.style.display = 'none';
+      }
+      if (statusEl) statusEl.innerHTML = '';
+      if (fullBtn) fullBtn.style.display = 'none';
     } else {
       alertBanner.style.display = 'none';
     }
   }
+
+  // Clear previous upload preview & close camera
+  stopLiveCamera();
+  clearPrescriptionPreview();
+
+  section.style.display = 'block';
+  section.scrollIntoView({ behavior: 'smooth' });
+}
 
   // Clear previous upload preview & close camera
   stopLiveCamera();
@@ -687,6 +776,27 @@ function resetConsultationScreen() {
 
   const alertBanner = document.getElementById('already-consulted-alert-banner');
   if (alertBanner) alertBanner.style.display = 'none';
+
+  const prevBox = document.getElementById('previous-prescription-preview-box');
+  if (prevBox) prevBox.style.display = 'none';
+
+  const prevImg = document.getElementById('previous-prescription-img');
+  if (prevImg) {
+    prevImg.src = '';
+    prevImg.style.display = 'none';
+  }
+
+  const prevStatus = document.getElementById('prev-prescription-status');
+  if (prevStatus) prevStatus.innerHTML = '';
+
+  const fullBtn = document.getElementById('open-prev-prescription-full');
+  if (fullBtn) fullBtn.style.display = 'none';
+
+  const viewPrevBtn = document.getElementById('view-previous-prescription-btn');
+  if (viewPrevBtn) {
+    viewPrevBtn.style.display = 'none';
+    viewPrevBtn.dataset.assetId = '';
+  }
 
   const section = document.getElementById('patient-consultation-section');
   if (section) section.style.display = 'none';

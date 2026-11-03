@@ -252,12 +252,18 @@ class ImageStorageAdapter {
 
     // 2. Check local secure disk
     if (imageAsset.provider === 'local_secure') {
-      const filePath = imageAsset.storageReference;
+      let filePath = imageAsset.storageReference;
+      if (!fs.existsSync(filePath)) {
+        const fallbackPath = path.join(this.secureStorageDir, path.basename(filePath));
+        if (fs.existsSync(fallbackPath)) {
+          filePath = fallbackPath;
+        }
+      }
       if (fs.existsSync(filePath)) {
         return {
           stream: fs.createReadStream(filePath),
-          mimeType: imageAsset.mimeType,
-          size: imageAsset.fileSizeBytes
+          mimeType: imageAsset.mimeType || 'image/jpeg',
+          size: imageAsset.fileSizeBytes || fs.statSync(filePath).size
         };
       }
       throw new Error('ফাইলটি পাওয়া যায়নি (Image file not found on disk)');

@@ -184,9 +184,17 @@
                 </div>
 
                 <!-- Previous prescription image container -->
-                <div id="previous-prescription-preview-box" style="display:none; margin-top:14px; text-align:center; background:#0F172A; padding:12px; border-radius:8px;">
-                  <div style="color:white; font-size:0.85rem; margin-bottom:8px; font-weight:600;">পূর্বে সংরক্ষিত প্রেসক্রিপশন ছবি:</div>
-                  <img id="previous-prescription-img" src="" alt="পূর্বের প্রেসক্রিপশন" style="max-width:100%; max-height:450px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.4);">
+                <div id="previous-prescription-preview-box" style="display:none; margin-top:14px; text-align:center; background:#0F172A; padding:16px; border-radius:8px;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                    <span style="color:white; font-size:0.9rem; font-weight:700;">পূর্বে সংরক্ষিত প্রেসক্রিপশন ছবি:</span>
+                    <a id="open-prev-prescription-full" href="#" target="_blank" class="btn btn-sm" style="background:#2563EB; color:white; font-size:0.8rem; padding:4px 12px; border-radius:4px; text-decoration:none; display:none;">
+                      🔍 বড় করে দেখুন (New Tab)
+                    </a>
+                  </div>
+                  <div id="prev-prescription-status" style="color:#94A3B8; font-size:0.85rem; margin-bottom:8px; min-height:20px;"></div>
+                  <div style="min-height:200px; display:flex; align-items:center; justify-content:center; background:#1E293B; border-radius:6px; padding:8px;">
+                    <img id="previous-prescription-img" src="" alt="পূর্বের প্রেসক্রিপশন" style="max-width:100%; max-height:500px; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.4); display:none;">
+                  </div>
                 </div>
               </div>
             </div>

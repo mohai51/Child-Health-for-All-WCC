@@ -13,7 +13,10 @@ const Referral = require('../referrals/referral.model');
  */
 async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId }) {
   // 1. Verify camp existence
-  let camp = await Camp.findById(campId);
+  let camp = null;
+  if (campId && mongoose.Types.ObjectId.isValid(campId)) {
+    camp = await Camp.findById(campId);
+  }
   if (!camp) {
     camp = await Camp.findOne({ status: 'ACTIVE' }) || await Camp.findOne();
   }
@@ -122,8 +125,8 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
     });
   }
 
-  // 9. Check if patient was already examined/completed in this camp
-  const completedConsultation = await Consultation.findOne({
+  // 9. Check if patient was already examined/completed in this camp or any camp
+  let completedConsultation = await Consultation.findOne({
     patientId: patient._id,
     campId: camp._id,
     status: { $in: ['COMPLETED', 'REFERRED'] }
@@ -131,6 +134,16 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
     .populate('doctorId', 'fullName specialty designation')
     .populate('prescriptionImageAssetIds')
     .sort({ completedAt: -1, updatedAt: -1 });
+
+  if (!completedConsultation) {
+    completedConsultation = await Consultation.findOne({
+      patientId: patient._id,
+      status: { $in: ['COMPLETED', 'REFERRED'] }
+    })
+      .populate('doctorId', 'fullName specialty designation')
+      .populate('prescriptionImageAssetIds')
+      .sort({ completedAt: -1, updatedAt: -1 });
+  }
 
   let referralInfo = null;
   if (completedConsultation) {
@@ -140,6 +153,41 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
   }
 
   const isAlreadyConsulted = Boolean(completedConsultation || visit?.status === 'COMPLETED');
+
+  // Find any prescription image asset ID and URL across completed & previous consultations
+  let prescriptionAssetId = null;
+  let prescriptionDirectUrl = null;
+
+  if (completedConsultation?.prescriptionImageAssetIds?.length) {
+    for (const item of completedConsultation.prescriptionImageAssetIds) {
+      if (item) {
+        prescriptionAssetId = (typeof item === 'object' && item._id) ? item._id.toString() : item.toString();
+        if (typeof item === 'object' && item.storageReference?.startsWith('http')) {
+          prescriptionDirectUrl = item.storageReference;
+        }
+        break;
+      }
+    }
+  }
+
+  if (!prescriptionAssetId && Array.isArray(previousConsultations)) {
+    for (const prev of previousConsultations) {
+      if (prev.prescriptionImageAssetIds?.length) {
+        for (const item of prev.prescriptionImageAssetIds) {
+          if (item) {
+            prescriptionAssetId = (typeof item === 'object' && item._id) ? item._id.toString() : item.toString();
+            if (typeof item === 'object' && item.storageReference?.startsWith('http')) {
+              prescriptionDirectUrl = item.storageReference;
+            }
+            break;
+          }
+        }
+      }
+      if (prescriptionAssetId) break;
+    }
+  }
+
+  const cleanPrescriptionAssetIds = prescriptionAssetId ? [prescriptionAssetId] : [];
 
   return {
     patient,
@@ -159,7 +207,9 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
       referredHospital: referralInfo?.referredHospital || completedConsultation.referralNotes || '',
       referralReason: referralInfo?.reason || '',
       completedAt: completedConsultation.completedAt || completedConsultation.updatedAt,
-      prescriptionImageAssetIds: completedConsultation.prescriptionImageAssetIds
+      prescriptionImageAssetIds: cleanPrescriptionAssetIds,
+      prescriptionAssetId,
+      prescriptionDirectUrl
     } : null
   };
 }
@@ -179,7 +229,13 @@ async function startConsultation({ patientId, campId, visitId, doctorUserId }) {
     throw new Error('চিকিৎসক প্রোফাইল পাওয়া যায়নি (Doctor profile not found)');
   }
 
-  const camp = await Camp.findById(campId);
+  let camp = null;
+  if (campId && mongoose.Types.ObjectId.isValid(campId)) {
+    camp = await Camp.findById(campId);
+  }
+  if (!camp) {
+    camp = await Camp.findOne({ status: 'ACTIVE' }) || await Camp.findOne();
+  }
   if (!camp || camp.status === 'CLOSED') {
     throw new Error('বন্ধ ক্যাম্পে নতুন চিকিৎসা শুরু করা যাবে না (Camp is closed)');
   }

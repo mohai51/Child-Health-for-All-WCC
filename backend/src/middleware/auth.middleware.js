@@ -24,6 +24,11 @@ async function authenticate(req, res, next) {
       token = req.cookies.wcc_session;
     }
 
+    // 3. Check query param (vital for <img> tags and media downloads)
+    if (!token && req.query?.token) {
+      token = req.query.token;
+    }
+
     if (!token) {
       return res.status(401).json({
         success: false,
@@ -75,6 +80,9 @@ async function optionalAuth(req, res, next) {
     let token = req.cookies?.wcc_session;
     if (!token && req.headers.authorization?.startsWith('Bearer ')) {
       token = req.headers.authorization.split(' ')[1];
+    }
+    if (!token && req.query?.token) {
+      token = req.query.token;
     }
     if (token) {
       const decoded = verifySessionToken(token);

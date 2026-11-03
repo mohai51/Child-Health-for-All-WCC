@@ -86,9 +86,12 @@ async function getImage(req, res) {
     }
 
     // Confidentiality Check:
-    // Prescriptions require Doctor or Super Admin authentication!
+    // Prescriptions require authenticated field staff (Doctor, Super Admin, Coordinator, Volunteer)
     if (imageAsset.isConfidential) {
-      if (!req.user || (req.user.role !== 'DOCTOR' && req.user.role !== 'SUPER_ADMIN')) {
+      const allowedRoles = ['DOCTOR', 'SUPER_ADMIN', 'CAMP_COORDINATOR', 'REGISTRATION_VOLUNTEER'];
+      const isAllowed = req.user && allowedRoles.includes(req.user.role);
+
+      if (!isAllowed) {
         await logAuditEvent({
           actorId: req.user?._id || null,
           actorRole: req.user?.role || 'anonymous',
