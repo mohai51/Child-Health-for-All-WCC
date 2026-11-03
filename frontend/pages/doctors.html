@@ -546,21 +546,26 @@
           let photoUrl = '';
           let profileImageAssetId = null;
 
-          // If photo selected, upload fast to server and sync ImgBB
+          // If photo selected, upload safely to server and sync ImgBB
           if (selectedImageFile) {
             submitBtn.innerHTML = `<span>ছবি আপলোড হচ্ছে...</span>`;
-            const formData = new FormData();
-            formData.append('image', selectedImageFile);
-            formData.append('category', 'DOCTOR_PROFILE');
+            try {
+              const formData = new FormData();
+              formData.append('image', selectedImageFile);
+              formData.append('category', 'DOCTOR_PROFILE');
 
-            const uploadRes = await apiFetch('/api/images/upload', {
-              method: 'POST',
-              body: formData
-            });
+              const uploadRes = await apiFetch('/api/images/upload', {
+                method: 'POST',
+                body: formData
+              });
 
-            if (uploadRes && uploadRes.success && uploadRes.data) {
-              photoUrl = uploadRes.data.url;
-              profileImageAssetId = uploadRes.data.assetId;
+              if (uploadRes && uploadRes.success && uploadRes.data) {
+                photoUrl = uploadRes.data.url || '';
+                profileImageAssetId = uploadRes.data.assetId || null;
+              }
+            } catch (imgErr) {
+              console.warn('Image upload error:', imgErr);
+              showToast('ছবি আপলোডে সমস্যা হয়েছে, তবে চিকিৎসক যুক্ত করা অব্যাহত রাখা হচ্ছে...', 'warning');
             }
           }
 
@@ -570,9 +575,9 @@
             fullName,
             specialty,
             phone,
-            assignedCampId,
-            photoUrl,
-            profileImageAssetId
+            assignedCampId: (assignedCampId && assignedCampId !== 'null') ? assignedCampId : null,
+            photoUrl: photoUrl || '',
+            profileImageAssetId: (profileImageAssetId && profileImageAssetId !== 'null') ? profileImageAssetId : null
           };
 
           const res = await apiFetch('/api/doctors', {

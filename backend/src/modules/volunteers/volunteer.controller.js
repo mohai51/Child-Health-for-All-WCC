@@ -118,9 +118,22 @@ async function createVolunteer(req, res) {
       assignedCampId
     } = req.body;
 
-    if (assignedCampId) {
+    // Sanitize assignedCampId
+    let cleanAssignedCampId = null;
+    if (assignedCampId && typeof assignedCampId === 'string') {
+      const trimmed = assignedCampId.trim();
+      if (trimmed !== '' && trimmed !== 'null' && trimmed !== 'undefined') {
+        cleanAssignedCampId = trimmed;
+      }
+    }
+
+    if (cleanAssignedCampId) {
+      const mongoose = require('mongoose');
+      if (!mongoose.Types.ObjectId.isValid(cleanAssignedCampId)) {
+        return res.status(400).json({ success: false, message: 'ক্যাম্প আইডি সঠিক নয়' });
+      }
       const Camp = require('../camps/camp.model');
-      const targetCamp = await Camp.findById(assignedCampId);
+      const targetCamp = await Camp.findById(cleanAssignedCampId);
       if (!targetCamp) {
         return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
       }
@@ -161,13 +174,13 @@ async function createVolunteer(req, res) {
       email: email ? email.toLowerCase().trim() : '',
       responsibility: responsibility || 'Registration Desk',
       profileImageAssetId: profileImageAssetId || null,
-      assignedCampId: assignedCampId || null,
+      assignedCampId: cleanAssignedCampId,
       accountStatus: 'ACTIVE'
     });
 
-    if (assignedCampId) {
+    if (cleanAssignedCampId) {
       await CampMember.findOneAndUpdate(
-        { campId: assignedCampId, volunteerId: volunteer._id },
+        { campId: cleanAssignedCampId, volunteerId: volunteer._id },
         {
           campId: assignedCampId,
           volunteerId: volunteer._id,

@@ -17,12 +17,15 @@ function validate(schema) {
       req.params = parsed.params ?? req.params;
       next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        const errorMessages = error.errors.map(err => `${err.path.join('.')}: ${err.message}`).join(', ');
+      if (error instanceof ZodError || error.name === 'ZodError' || Array.isArray(error.errors) || Array.isArray(error.issues)) {
+        const issues = error.errors || error.issues || [];
+        const errorMessages = issues.length > 0 
+          ? issues.map(err => `${err.path.join('.')}: ${err.message}`).join(', ')
+          : (error.message || 'ভুল তথ্য প্রদান করা হয়েছে');
         return res.status(400).json({
           success: false,
           message: `তথ্য যাচাই ব্যর্থ হয়েছে: ${errorMessages}`,
-          errors: error.errors
+          errors: issues
         });
       }
       next(error);

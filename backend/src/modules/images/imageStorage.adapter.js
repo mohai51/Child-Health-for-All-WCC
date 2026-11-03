@@ -52,29 +52,85 @@ class ImageStorageAdapter {
     this.validateImage(file);
 
     const { category, isConfidential = false, relatedRecordId = null } = options;
-    const randomName = `${crypto.randomUUID()}${path.extname(file.originalname || '.jpg').toLowerCase()}`;
-
-    // 1. Immediately store to local secure disk for ultra-fast response (< 20ms)
-    const destinationPath = path.join(this.secureStorageDir, randomName);
-    fs.copyFileSync(file.path, destinationPath);
-    this._cleanupTemp(file.path);
-
-    // 2. Asynchronous background sync to ImgBB without blocking doctor
-    if (this.imgbbApiKey) {
-      this.syncBackgroundImgBB(destinationPath, randomName, { ...options, mimeType: file.mimetype }).catch(e => {
-        logger.warn({ err: e.message }, 'Background ImgBB sync notice');
-      });
+    const buffer = file.buffer || (file.path && fs.existsSync(file.path) ? fs.readFileSync(file.path) : null);
+    if (!buffer) {
+      throw new Error('ছবির ডাটা পাওয়া যায়নি (Image buffer missing)');
     }
 
+    const ext = path.extname(file.originalname || '.jpg').toLowerCase() || '.jpg';
+    const randomName = `${crypto.randomUUID()}${ext}`;
+
+    // 1. If ImgBB API key is configured (preferred reliable cloud storage for both Vercel & local)
+    if (this.imgbbApiKey) {
+      try {
+        const blob = new Blob([buffer], { type: file.mimetype || 'image/jpeg' });
+        const form = new FormData();
+        form.append('image', blob, randomName);
+
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${this.imgbbApiKey}`, {
+          method: 'POST',
+          body: form
+        });
+        const data = await res.json();
+        if (res.ok && data && data.success && data.data?.url) {
+          logger.info(`ImgBB cloud upload success: ${data.data.url}`);
+          return {
+            provider: 'imgbb',
+            providerAssetId: data.data.id || randomName,
+            storageReference: data.data.url,
+            directUrl: data.data.url,
+            category,
+            isConfidential: Boolean(isConfidential),
+            mimeType: file.mimetype,
+            fileSizeBytes: file.size || buffer.length,
+            relatedRecordId
+          };
+        } else {
+          logger.warn({ data }, 'ImgBB upload response indicated failure, falling back to local/memory');
+        }
+      } catch (err) {
+        logger.warn({ err: err.message }, 'ImgBB cloud upload failed, falling back to local storage');
+      }
+    }
+
+    // 2. Local disk backup (if directory can be created or exists)
+    let localPath = null;
+    try {
+      if (!fs.existsSync(this.secureStorageDir)) {
+        fs.mkdirSync(this.secureStorageDir, { recursive: true });
+      }
+      localPath = path.join(this.secureStorageDir, randomName);
+      fs.writeFileSync(localPath, buffer);
+      if (file.path) this._cleanupTemp(file.path);
+    } catch (fsErr) {
+      logger.warn({ err: fsErr.message }, 'Local disk write skipped in serverless environment');
+    }
+
+    if (localPath && fs.existsSync(localPath)) {
+      return {
+        provider: 'local_secure',
+        providerAssetId: randomName,
+        storageReference: localPath,
+        directUrl: `/api/images/raw/${randomName}`,
+        category,
+        isConfidential: Boolean(isConfidential),
+        mimeType: file.mimetype,
+        fileSizeBytes: file.size || buffer.length,
+        relatedRecordId
+      };
+    }
+
+    // 3. Guaranteed zero-crash fallback: Store as Base64 data URI
+    const base64Data = `data:${file.mimetype || 'image/jpeg'};base64,${buffer.toString('base64')}`;
     return {
-      provider: 'local_secure',
+      provider: 'base64',
       providerAssetId: randomName,
-      storageReference: destinationPath,
-      directUrl: `/api/images/raw/${randomName}`,
+      storageReference: base64Data,
+      directUrl: base64Data,
       category,
       isConfidential: Boolean(isConfidential),
       mimeType: file.mimetype,
-      fileSizeBytes: file.size,
+      fileSizeBytes: file.size || buffer.length,
       relatedRecordId
     };
   }
@@ -181,34 +237,53 @@ class ImageStorageAdapter {
    * Get image file stream or file path for authorized retrieval
    */
   async getImageStream(imageAsset) {
-    // 1. Check local secure disk first
-    if (imageAsset.provider === 'local_secure') {
-      const filePath = imageAsset.storageReference;
-      if (!fs.existsSync(filePath)) {
-        throw new Error('ফাইলটি পাওয়া যায়নি (Image file not found on disk)');
-      }
+    // 1. Base64 storage
+    if (imageAsset.provider === 'base64') {
+      const base64Str = imageAsset.storageReference.includes(',') 
+        ? imageAsset.storageReference.split(',')[1] 
+        : imageAsset.storageReference;
+      const buffer = Buffer.from(base64Str, 'base64');
       return {
-        stream: fs.createReadStream(filePath),
-        mimeType: imageAsset.mimeType,
-        size: imageAsset.fileSizeBytes
+        stream: Readable.from(buffer),
+        mimeType: imageAsset.mimeType || 'image/jpeg',
+        size: buffer.length
       };
     }
 
-    if (imageAsset.provider === 'imgbb') {
-      // Check if local backup exists
-      const files = fs.readdirSync(this.secureStorageDir);
-      const match = files.find(f => f.startsWith(imageAsset.providerAssetId) || imageAsset.storageReference?.includes(f));
-      if (match) {
-        const localPath = path.join(this.secureStorageDir, match);
+    // 2. Check local secure disk
+    if (imageAsset.provider === 'local_secure') {
+      const filePath = imageAsset.storageReference;
+      if (fs.existsSync(filePath)) {
         return {
-          stream: fs.createReadStream(localPath),
+          stream: fs.createReadStream(filePath),
           mimeType: imageAsset.mimeType,
           size: imageAsset.fileSizeBytes
         };
       }
+      throw new Error('ফাইলটি পাওয়া যায়নি (Image file not found on disk)');
+    }
+
+    if (imageAsset.provider === 'imgbb') {
+      // Check if local backup exists safely
+      if (fs.existsSync(this.secureStorageDir)) {
+        try {
+          const files = fs.readdirSync(this.secureStorageDir);
+          const match = files.find(f => f.startsWith(imageAsset.providerAssetId) || imageAsset.storageReference?.includes(f));
+          if (match) {
+            const localPath = path.join(this.secureStorageDir, match);
+            return {
+              stream: fs.createReadStream(localPath),
+              mimeType: imageAsset.mimeType,
+              size: imageAsset.fileSizeBytes
+            };
+          }
+        } catch (e) {
+          // ignore error reading local directory
+        }
+      }
 
       // Fetch from ImgBB CDN
-      if (imageAsset.storageReference) {
+      if (imageAsset.storageReference && imageAsset.storageReference.startsWith('http')) {
         const response = await fetch(imageAsset.storageReference);
         if (!response.ok) {
           throw new Error('ImgBB থেকে ছবি লোড করা যায়নি');

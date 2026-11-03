@@ -131,12 +131,24 @@ async function createDoctor(req, res) {
       photoUrl
     } = req.body;
 
-    // Auto-generate clean email if omitted
-    if (assignedCampId) {
+    // Sanitize assignedCampId
+    let cleanAssignedCampId = null;
+    if (assignedCampId && typeof assignedCampId === 'string') {
+      const trimmed = assignedCampId.trim();
+      if (trimmed !== '' && trimmed !== 'null' && trimmed !== 'undefined') {
+        cleanAssignedCampId = trimmed;
+      }
+    }
+
+    if (cleanAssignedCampId) {
+      const mongoose = require('mongoose');
+      if (!mongoose.Types.ObjectId.isValid(cleanAssignedCampId)) {
+        return res.status(400).json({ success: false, message: 'প্রদত্ত স্বাস্থ্য ক্যাম্প আইডি সঠিক নয়' });
+      }
       const Camp = require('../camps/camp.model');
-      const targetCamp = await Camp.findById(assignedCampId);
+      const targetCamp = await Camp.findById(cleanAssignedCampId);
       if (!targetCamp) {
-        return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
+        return res.status(404).json({ success: false, message: 'স্বাস্থ্য ক্যাম্প খুঁজে পাওয়া যায়নি' });
       }
       if (targetCamp.status !== 'ACTIVE') {
         return res.status(400).json({
@@ -146,10 +158,26 @@ async function createDoctor(req, res) {
       }
     }
 
-    let normalizedEmail = email ? email.toLowerCase().trim() : '';
+    // Sanitize profileImageAssetId
+    let cleanProfileImageAssetId = null;
+    if (profileImageAssetId && typeof profileImageAssetId === 'string') {
+      const trimmed = profileImageAssetId.trim();
+      if (trimmed !== '' && trimmed !== 'null' && trimmed !== 'undefined') {
+        const mongoose = require('mongoose');
+        if (mongoose.Types.ObjectId.isValid(trimmed)) {
+          cleanProfileImageAssetId = trimmed;
+        }
+      }
+    }
+
+    // Convert Bangla digits in phone to English digits
+    const bnToEn = { '০':'0', '১':'1', '২':'2', '৩':'3', '৪':'4', '৫':'5', '৬':'6', '৭':'7', '৮':'8', '৯':'9' };
+    const rawPhone = (phone || '').replace(/[০-৯]/g, d => bnToEn[d] || d).trim();
+    const cleanPhoneDigits = rawPhone.replace(/[^0-9]/g, '');
+
+    let normalizedEmail = email && typeof email === 'string' ? email.toLowerCase().trim() : '';
     if (!normalizedEmail) {
-      const cleanPhone = (phone || '').replace(/[^0-9]/g, '');
-      const uniqueSuffix = cleanPhone.length >= 6 ? cleanPhone.slice(-6) : Math.floor(1000 + Math.random() * 9000);
+      const uniqueSuffix = cleanPhoneDigits.length >= 6 ? cleanPhoneDigits.slice(-6) : Math.floor(100000 + Math.random() * 900000);
       normalizedEmail = `dr.${uniqueSuffix}@wcc.org.bd`;
     }
 
@@ -162,7 +190,7 @@ async function createDoctor(req, res) {
           message: 'এই ইমেইল দিয়ে ইতিমধ্যে একজন ব্যবহারকারী নিবন্ধিত আছে (Email already registered)'
         });
       } else {
-        normalizedEmail = `dr.${Date.now().toString().slice(-6)}_${Math.floor(Math.random() * 1000)}@wcc.org.bd`;
+        normalizedEmail = `dr.${Date.now().toString().slice(-6)}_${Math.floor(1000 + Math.random() * 9000)}@wcc.org.bd`;
       }
     }
 
@@ -185,20 +213,20 @@ async function createDoctor(req, res) {
       designation: designation || 'শিশু বিশেষজ্ঞ',
       hospital: hospital || '',
       bmdcNumber: bmdcNumber || '',
-      phone: phone || '',
-      assignedCampId: assignedCampId || null,
-      profileImageAssetId: profileImageAssetId || null,
+      phone: rawPhone || phone || '',
+      assignedCampId: cleanAssignedCampId,
+      profileImageAssetId: cleanProfileImageAssetId,
       photoUrl: photoUrl || '',
       accountStatus: 'ACTIVE'
     });
 
     // Create CampMember link if camp was selected
-    if (assignedCampId) {
+    if (cleanAssignedCampId) {
       const CampMember = require('../camps/campMember.model');
       await CampMember.findOneAndUpdate(
-        { campId: assignedCampId, doctorId: doctor._id },
+        { campId: cleanAssignedCampId, doctorId: doctor._id },
         {
-          campId: assignedCampId,
+          campId: cleanAssignedCampId,
           doctorId: doctor._id,
           userId: user._id,
           campRole: 'DOCTOR',
@@ -209,14 +237,14 @@ async function createDoctor(req, res) {
     }
 
     await logAuditEvent({
-      actorId: req.user._id,
-      actorRole: req.user.role,
+      actorId: req.user?._id || user._id,
+      actorRole: req.user?.role || 'SUPER_ADMIN',
       action: 'DOCTOR_CREATE',
       resourceType: 'Doctor',
       resourceId: doctor._id,
       result: 'SUCCESS',
       req,
-      metadata: { doctorId: doctor._id, fullName: doctor.fullName, email: user.email, assignedCampId }
+      metadata: { doctorId: doctor._id, fullName: doctor.fullName, email: user.email, assignedCampId: cleanAssignedCampId }
     });
 
     return res.status(201).json({
@@ -230,7 +258,7 @@ async function createDoctor(req, res) {
   } catch (error) {
     return res.status(500).json({
       success: false,
-      message: 'চিকিৎসক যুক্ত করতে সমস্যা হয়েছে (Failed to create doctor)',
+      message: 'চিকিৎসক যুক্ত করতে সমস্যা হয়েছে: ' + error.message,
       error: error.message
     });
   }

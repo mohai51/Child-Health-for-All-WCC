@@ -7,16 +7,8 @@ const { authenticate, optionalAuth } = require('../../middleware/auth.middleware
 
 const router = express.Router();
 
-// Multer temporary storage configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, config.uploadTempDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}${path.extname(file.originalname).toLowerCase()}`);
-  }
-});
+// Multer in-memory storage (Resilient across both Vercel Serverless and local containers)
+const storage = multer.memoryStorage();
 
 const upload = multer({
   storage,
@@ -28,7 +20,10 @@ const upload = multer({
     if (allowed.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('শুধুমাত্র JPEG, PNG এবং WebP ছবি আপলোড করা যাবে (Invalid file format)'));
+      const err = new Error('শুধুমাত্র JPEG, PNG এবং WebP ছবি আপলোড করা যাবে (Invalid file format)');
+      err.isOperational = true;
+      err.statusCode = 400;
+      cb(err);
     }
   }
 });
