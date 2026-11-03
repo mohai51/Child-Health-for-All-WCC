@@ -5,9 +5,13 @@ const { Readable } = require('stream');
 const config = require('../../config/env');
 const logger = require('../../config/logger');
 
-// Ensure local directories exist
-fs.mkdirSync(config.uploadTempDir, { recursive: true });
-fs.mkdirSync(config.secureStorageDir, { recursive: true });
+// Ensure local directories exist safely
+try {
+  fs.mkdirSync(config.uploadTempDir, { recursive: true });
+  fs.mkdirSync(config.secureStorageDir, { recursive: true });
+} catch (e) {
+  logger.warn({ error: e.message }, 'Failed to create upload directories');
+}
 
 class ImageStorageAdapter {
   constructor() {

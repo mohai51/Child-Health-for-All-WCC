@@ -6,6 +6,10 @@ let memoryServerInstance = null;
 
 async function connectDB(customUri) {
   try {
+    if (mongoose.connection && mongoose.connection.readyState >= 1) {
+      return mongoose.connection;
+    }
+
     let uri = customUri || (process.env.NODE_ENV === 'test' ? '' : config.mongodbUri);
 
     if (!uri) {

@@ -19,8 +19,8 @@ const config = {
   imagesDbApiKey: process.env.IMAGESDB_API_KEY || '',
   imagesDbBaseUrl: process.env.IMAGESDB_API_BASE_URL || 'https://api.imagesdb.io/v1',
   maxImageSizeMb: parseInt(process.env.MAX_IMAGE_SIZE_MB || '5', 10),
-  uploadTempDir: path.resolve(__dirname, '../../../uploads/temp'),
-  secureStorageDir: path.resolve(__dirname, '../../../uploads/secure'),
+  uploadTempDir: process.env.UPLOAD_TEMP_DIR || (process.env.VERCEL ? '/tmp/uploads/temp' : path.resolve(__dirname, '../../../uploads/temp')),
+  secureStorageDir: process.env.SECURE_STORAGE_DIR || (process.env.VERCEL ? '/tmp/uploads/secure' : path.resolve(__dirname, '../../../uploads/secure')),
 };
 
 module.exports = config;
