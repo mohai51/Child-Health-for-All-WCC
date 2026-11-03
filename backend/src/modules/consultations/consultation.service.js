@@ -122,13 +122,45 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
     });
   }
 
+  // 9. Check if patient was already examined/completed in this camp
+  const completedConsultation = await Consultation.findOne({
+    patientId: patient._id,
+    campId: camp._id,
+    status: { $in: ['COMPLETED', 'REFERRED'] }
+  })
+    .populate('doctorId', 'fullName specialty designation')
+    .populate('prescriptionImageAssetIds')
+    .sort({ completedAt: -1, updatedAt: -1 });
+
+  let referralInfo = null;
+  if (completedConsultation) {
+    referralInfo = await Referral.findOne({
+      consultationId: completedConsultation._id
+    });
+  }
+
+  const isAlreadyConsulted = Boolean(completedConsultation || visit?.status === 'COMPLETED');
+
   return {
     patient,
     visit,
     doctor,
     camp,
     previousConsultations,
-    activeConsultationId: existingActiveConsultation ? existingActiveConsultation._id : null
+    activeConsultationId: existingActiveConsultation ? existingActiveConsultation._id : null,
+    isAlreadyConsulted,
+    completedConsultation: completedConsultation ? {
+      _id: completedConsultation._id,
+      doctorName: completedConsultation.doctorId?.fullName || completedConsultation.doctorName || 'চিকিৎসক',
+      doctorSpecialty: completedConsultation.doctorId?.specialty || '',
+      diagnosis: completedConsultation.diagnosis,
+      notes: completedConsultation.notes,
+      referralRequired: Boolean(completedConsultation.referralRequired || referralInfo),
+      referredHospital: referralInfo?.referredHospital || completedConsultation.referralNotes || '',
+      referralReason: referralInfo?.reason || '',
+      completedAt: completedConsultation.completedAt || completedConsultation.updatedAt,
+      prescriptionImageAssetIds: completedConsultation.prescriptionImageAssetIds
+    } : null
   };
 }
 
@@ -203,6 +235,9 @@ async function completeConsultation({
   if (doctorUserId && mongoose.Types.ObjectId.isValid(doctorUserId)) {
     doctor = await Doctor.findOne({ userId: doctorUserId });
   }
+  if (!doctor && consultation.doctorId) {
+    doctor = await Doctor.findById(consultation.doctorId);
+  }
   if (!doctor) {
     doctor = await Doctor.findOne({ status: 'ACTIVE' }) || await Doctor.findOne();
   }
@@ -233,7 +268,9 @@ async function completeConsultation({
       followUpNotes: referralData.followUpNotes || ''
     });
 
-    consultation.referralNotes = referralData.reason || '';
+    consultation.referralNotes = referralData.referredHospital
+      ? `${referralData.referredHospital}${referralData.reason ? ' - ' + referralData.reason : ''}`
+      : (referralData.reason || '');
     await consultation.save();
   }
 

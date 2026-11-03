@@ -68,6 +68,51 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (saveBtn) {
     saveBtn.addEventListener('click', handleSaveConsultation);
   }
+
+  // Referral Radio & Dropdown listeners
+  const refNo = document.getElementById('referral-no');
+  const refYes = document.getElementById('referral-yes');
+  const refContainer = document.getElementById('referral-destination-container');
+  const refSelect = document.getElementById('referral-hospital-select');
+  const refCustomBox = document.getElementById('referral-custom-box');
+
+  if (refNo && refYes && refContainer) {
+    refNo.addEventListener('change', () => {
+      refContainer.style.display = 'none';
+      if (refSelect) refSelect.value = '';
+      if (refCustomBox) refCustomBox.style.display = 'none';
+    });
+    refYes.addEventListener('change', () => {
+      refContainer.style.display = 'block';
+      if (refSelect) refSelect.focus();
+    });
+  }
+
+  if (refSelect && refCustomBox) {
+    refSelect.addEventListener('change', () => {
+      if (refSelect.value === 'অন্যান্য সরকারি হাসপাতাল') {
+        refCustomBox.style.display = 'block';
+        document.getElementById('referral-custom-hospital')?.focus();
+      } else {
+        refCustomBox.style.display = 'none';
+      }
+    });
+  }
+
+  // View Previous Prescription Button
+  const viewPrevBtn = document.getElementById('view-previous-prescription-btn');
+  const prevBox = document.getElementById('previous-prescription-preview-box');
+  if (viewPrevBtn && prevBox) {
+    viewPrevBtn.addEventListener('click', () => {
+      if (prevBox.style.display === 'none' || !prevBox.style.display) {
+        prevBox.style.display = 'block';
+        viewPrevBtn.innerHTML = '✕ প্রেসক্রিপশন লুকান';
+      } else {
+        prevBox.style.display = 'none';
+        viewPrevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
+      }
+    });
+  }
 });
 
 // Load active camps
@@ -137,8 +182,8 @@ async function searchPatientInCamp() {
 
       renderPatientDetails(res.data);
 
-      // Automatically initialize consultation session in background if not already started
-      if (!activeConsultationSessionId) {
+      // Automatically initialize consultation session in background if not already started and patient was not already examined
+      if (!activeConsultationSessionId && !res.data.isAlreadyConsulted) {
         await autoInitConsultationSession();
       }
     }
@@ -174,6 +219,67 @@ function renderPatientDetails(data) {
   document.getElementById('pv-guardian').innerText = `${p.guardianName || '-'} (${p.guardianPhone || 'ফোন নম্বর নেই'})`;
   document.getElementById('pv-complaint').innerText = v?.mainComplaint || p.mainComplaint || 'সাধারণ স্বাস্থ্য পরীক্ষা';
   document.getElementById('pv-vitals').innerText = `ওজন: ${p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'N/A'}, উচ্চতা: ${p.height ? `${toBanglaNumber(p.height)} সেমি` : 'N/A'}`;
+
+  // Check if patient was already examined
+  const alertBanner = document.getElementById('already-consulted-alert-banner');
+  const prevBox = document.getElementById('previous-prescription-preview-box');
+  const prevImg = document.getElementById('previous-prescription-img');
+  const prevBtn = document.getElementById('view-previous-prescription-btn');
+  const refBadge = document.getElementById('ac-referral-badge');
+  const refDestBox = document.getElementById('ac-referral-dest-box');
+
+  if (alertBanner) {
+    if (data.isAlreadyConsulted) {
+      alertBanner.style.display = 'block';
+      const c = data.completedConsultation || {};
+
+      const docNameEl = document.getElementById('ac-doctor-name');
+      if (docNameEl) docNameEl.innerText = c.doctorName || 'চিকিৎসক';
+
+      const timeEl = document.getElementById('ac-time');
+      if (timeEl) {
+        timeEl.innerText = c.completedAt
+          ? new Date(c.completedAt).toLocaleString('bn-BD', { dateStyle: 'short', timeStyle: 'short' })
+          : 'ইতিমধ্যে সম্পন্ন';
+      }
+
+      const diagEl = document.getElementById('ac-diagnosis');
+      if (diagEl) diagEl.innerText = c.diagnosis || c.notes || 'প্রেসক্রিপশন আপলোড সম্পন্ন';
+
+      if (c.referralRequired) {
+        if (refBadge) refBadge.style.display = 'inline-block';
+        if (refDestBox) {
+          refDestBox.style.display = 'block';
+          const destEl = document.getElementById('ac-referral-dest');
+          if (destEl) destEl.innerText = c.referredHospital || 'সরকারি হাসপাতাল';
+        }
+      } else {
+        if (refBadge) refBadge.style.display = 'none';
+        if (refDestBox) refDestBox.style.display = 'none';
+      }
+
+      // Check for prescription image
+      if (prevBtn && prevImg) {
+        let assetId = null;
+        if (Array.isArray(c.prescriptionImageAssetIds) && c.prescriptionImageAssetIds.length > 0) {
+          const firstAsset = c.prescriptionImageAssetIds[0];
+          assetId = typeof firstAsset === 'object' ? (firstAsset._id || firstAsset.assetId) : firstAsset;
+        }
+
+        if (assetId) {
+          prevBtn.style.display = 'inline-block';
+          prevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
+          prevImg.src = `/api/images/${assetId}`;
+        } else {
+          prevBtn.style.display = 'none';
+        }
+      }
+
+      if (prevBox) prevBox.style.display = 'none';
+    } else {
+      alertBanner.style.display = 'none';
+    }
+  }
 
   // Clear previous upload preview & close camera
   stopLiveCamera();
@@ -454,6 +560,32 @@ async function handleSaveConsultation() {
     return;
   }
 
+  // Check referral details
+  const refYesRadio = document.getElementById('referral-yes');
+  const isReferralYes = Boolean(refYesRadio && refYesRadio.checked);
+  let referredHospital = '';
+  let referralReason = '';
+
+  if (isReferralYes) {
+    const refSelect = document.getElementById('referral-hospital-select');
+    const customInput = document.getElementById('referral-custom-hospital');
+    const reasonInput = document.getElementById('referral-reason-input');
+
+    if (refSelect && refSelect.value === 'অন্যান্য সরকারি হাসপাতাল') {
+      referredHospital = customInput ? customInput.value.trim() : '';
+    } else if (refSelect) {
+      referredHospital = refSelect.value.trim();
+    }
+
+    if (!referredHospital) {
+      showToast('অনুগ্রহ করে রেফারেল সরকারি হাসপাতাল নির্বাচন অথবা নাম উল্লেখ করুন', 'error');
+      refSelect?.focus();
+      return;
+    }
+
+    referralReason = reasonInput ? reasonInput.value.trim() : '';
+  }
+
   const saveBtn = document.getElementById('save-consultation-btn');
   saveBtn.disabled = true;
   saveBtn.innerHTML = '<span>সংরক্ষণ হচ্ছে...</span>';
@@ -466,22 +598,32 @@ async function handleSaveConsultation() {
     const noteInput = document.getElementById('doctor-short-note');
     const diagnosis = noteInput ? (noteInput.value.trim() || 'প্রেসক্রিপশন আপলোডকৃত') : 'প্রেসক্রিপশন আপলোডকৃত';
 
+    const payload = {
+      diagnosis,
+      notes: isReferralYes ? `রেফারেল: ${referredHospital}${referralReason ? ` (${referralReason})` : ''}` : '',
+      prescriptionImageAssetIds: uploadedPrescriptionAssetIds,
+      referralRequired: isReferralYes
+    };
+
+    if (isReferralYes) {
+      payload.referralData = {
+        referredHospital,
+        reason: referralReason
+      };
+    }
+
     const res = await apiFetch(`/api/camps/${activeConsultationCampId}/consultations/${activeConsultationSessionId}`, {
       method: 'PATCH',
-      body: JSON.stringify({
-        diagnosis,
-        notes: '',
-        prescriptionImageAssetIds: uploadedPrescriptionAssetIds,
-        referralRequired: false
-      })
+      body: JSON.stringify(payload)
     });
 
     if (res && res.success) {
       const patientName = currentPatientData.fullName || 'রোগী';
       const patientId = currentPatientData.patientId || '';
-      showToast(`রোগী ${patientName} (${patientId}) এর প্রেসক্রিপশন সংরক্ষিত ও সম্পন্ন হয়েছে!`, 'success');
+      const refMsg = isReferralYes ? ` (রেফারেল: ${referredHospital})` : '';
+      showToast(`রোগী ${patientName} (${patientId}) এর প্রেসক্রিপশন সংরক্ষিত ও সম্পন্ন হয়েছে!${refMsg}`, 'success');
 
-      alert(`চিকিৎসা সম্পন্ন ও প্রেসক্রিপশন সংরক্ষিত হয়েছে।\nরোগী: ${patientName} (${patientId})`);
+      alert(`চিকিৎসা সম্পন্ন ও প্রেসক্রিপশন সংরক্ষিত হয়েছে।\nরোগী: ${patientName} (${patientId})${isReferralYes ? `\nরেফারেল: ${referredHospital}` : ''}`);
 
       resetConsultationScreen();
 
@@ -517,6 +659,23 @@ function clearPrescriptionPreview() {
   if (statusEl) statusEl.innerHTML = '';
   if (fileInput) fileInput.value = '';
   if (noteInput) noteInput.value = '';
+
+  // Reset referral controls
+  const refNo = document.getElementById('referral-no');
+  const refYes = document.getElementById('referral-yes');
+  const refContainer = document.getElementById('referral-destination-container');
+  const refSelect = document.getElementById('referral-hospital-select');
+  const refCustomBox = document.getElementById('referral-custom-box');
+  const customInput = document.getElementById('referral-custom-hospital');
+  const reasonInput = document.getElementById('referral-reason-input');
+
+  if (refNo) refNo.checked = true;
+  if (refYes) refYes.checked = false;
+  if (refContainer) refContainer.style.display = 'none';
+  if (refSelect) refSelect.value = '';
+  if (refCustomBox) refCustomBox.style.display = 'none';
+  if (customInput) customInput.value = '';
+  if (reasonInput) reasonInput.value = '';
 }
 
 function resetConsultationScreen() {
@@ -525,6 +684,9 @@ function resetConsultationScreen() {
   currentVisitData = null;
   activeConsultationSessionId = null;
   clearPrescriptionPreview();
+
+  const alertBanner = document.getElementById('already-consulted-alert-banner');
+  if (alertBanner) alertBanner.style.display = 'none';
 
   const section = document.getElementById('patient-consultation-section');
   if (section) section.style.display = 'none';
