@@ -1,7 +1,8 @@
 const pino = require('pino');
 const config = require('./env');
 
-const isDev = config.env !== 'production';
+const isVercel = Boolean(process.env.VERCEL);
+const isDev = config.env !== 'production' && !isVercel;
 
 const logger = pino({
   level: isDev ? 'debug' : 'info',
@@ -20,6 +21,7 @@ const logger = pino({
     ],
     remove: true
   },
+  // In serverless environments (Vercel), avoid worker_thread transports
   transport: isDev
     ? {
         target: 'pino-pretty',

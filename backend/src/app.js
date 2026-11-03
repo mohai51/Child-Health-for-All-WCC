@@ -197,26 +197,43 @@ app.get('/api/health', async (req, res) => {
   });
 });
 
-// Serve static frontend files (with no-cache in dev to ensure fresh client scripts)
+// Serve static frontend files safely (if directory exists on disk)
+const fs = require('fs');
 const frontendPath = path.resolve(__dirname, '../../frontend');
-app.use(express.static(frontendPath, {
-  etag: false,
-  maxAge: 0,
-  setHeaders: (res) => {
-    res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
-  }
-}));
+if (fs.existsSync(frontendPath)) {
+  app.use(express.static(frontendPath, {
+    etag: false,
+    maxAge: 0,
+    setHeaders: (res) => {
+      res.set('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+    }
+  }));
 
-// For non-API routes, fallback to frontend index or specific pages
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
-  }
-  // If file exists in frontend, express.static served it; otherwise send index.html
-  res.sendFile(path.join(frontendPath, 'index.html'));
-});
+  // For non-API routes, fallback to frontend index or specific pages
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    const indexPath = path.join(frontendPath, 'index.html');
+    if (fs.existsSync(indexPath)) {
+      return res.sendFile(indexPath);
+    }
+    next();
+  });
+} else {
+  // If running in isolated serverless function where frontend is served by Vercel Edge CDN
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.status(404).json({
+      success: false,
+      message: 'Not found: Frontend assets are served directly by Vercel Edge'
+    });
+  });
+}
 
 // Global Error Handler
 app.use(errorHandler);
