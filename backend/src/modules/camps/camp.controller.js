@@ -2,10 +2,13 @@ const Camp = require('./camp.model');
 const CampMember = require('./campMember.model');
 const Doctor = require('../doctors/doctor.model');
 const Volunteer = require('../volunteers/volunteer.model');
+const Visit = require('../visits/visit.model');
+const Consultation = require('../consultations/consultation.model');
+const Referral = require('../referrals/referral.model');
 const { generateCampCode, getCampStats } = require('./camp.service');
 const { logAuditEvent } = require('../../services/audit.service');
 
-// Get all camps (with filtering by status or role)
+// Get all camps (with filtering by status or role) - High-performance batch aggregation
 async function getCamps(req, res) {
   try {
     const query = {};
@@ -17,25 +20,91 @@ async function getCamps(req, res) {
     if (req.user.role === 'DOCTOR') {
       const assigned = await CampMember.find({
         $or: [{ userId: req.user._id }, ...(req.doctor ? [{ doctorId: req.doctor._id }] : [])]
-      }).select('campId');
+      }).select('campId').lean();
       query._id = { $in: assigned.map(a => a.campId) };
     } else if (req.user.role === 'REGISTRATION_VOLUNTEER' || req.user.role === 'CAMP_COORDINATOR') {
-      const assigned = await CampMember.find({ userId: req.user._id }).select('campId');
+      const assigned = await CampMember.find({ userId: req.user._id }).select('campId').lean();
       query._id = { $in: assigned.map(a => a.campId) };
     }
 
-    const camps = await Camp.find(query).sort({ date: -1, createdAt: -1 });
+    const camps = await Camp.find(query).sort({ date: -1, createdAt: -1 }).lean();
+    if (camps.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
 
-    // Attach basic stats for each camp
-    const campsWithStats = await Promise.all(
-      camps.map(async camp => {
-        const stats = await getCampStats(camp._id);
-        return {
-          ...camp.toObject(),
-          stats
-        };
-      })
-    );
+    // If simple camp list requested for fast dropdown population (e.g. ?simple=true)
+    if (req.query.simple === 'true') {
+      return res.json({ success: true, data: camps });
+    }
+
+    const campIds = camps.map(c => c._id);
+
+    // Batch aggregate all statistics across camps in 4 parallel queries instead of N*7 queries
+    const [visitAgg, consultAgg, memberAgg, referralAgg] = await Promise.all([
+      Visit.aggregate([
+        { $match: { campId: { $in: campIds } } },
+        { $group: { _id: '$campId', totalVisits: { $sum: 1 } } }
+      ]),
+      Consultation.aggregate([
+        { $match: { campId: { $in: campIds } } },
+        {
+          $group: {
+            _id: '$campId',
+            totalConsultations: { $sum: 1 },
+            completedConsultations: {
+              $sum: { $cond: [{ $in: ['$status', ['COMPLETED', 'REFERRED']] }, 1, 0] }
+            }
+          }
+        }
+      ]),
+      CampMember.aggregate([
+        { $match: { campId: { $in: campIds } } },
+        {
+          $group: {
+            _id: { campId: '$campId', role: '$campRole' },
+            count: { $sum: 1 }
+          }
+        }
+      ]),
+      Referral.aggregate([
+        { $match: { campId: { $in: campIds } } },
+        { $group: { _id: '$campId', referralsCount: { $sum: 1 } } }
+      ])
+    ]);
+
+    const visitMap = {};
+    visitAgg.forEach(v => { visitMap[v._id.toString()] = v.totalVisits; });
+
+    const consultMap = {};
+    consultAgg.forEach(c => { consultMap[c._id.toString()] = c; });
+
+    const referralMap = {};
+    referralAgg.forEach(r => { referralMap[r._id.toString()] = r.referralsCount; });
+
+    const memberMap = {};
+    memberAgg.forEach(m => {
+      const cId = m._id.campId.toString();
+      if (!memberMap[cId]) memberMap[cId] = { DOCTOR: 0, VOLUNTEER: 0 };
+      memberMap[cId][m._id.role] = m.count;
+    });
+
+    const campsWithStats = camps.map(camp => {
+      const cId = camp._id.toString();
+      const cData = consultMap[cId] || {};
+      const mData = memberMap[cId] || {};
+      return {
+        ...camp,
+        stats: {
+          totalVisits: visitMap[cId] || 0,
+          totalConsultations: cData.totalConsultations || 0,
+          completedConsultations: cData.completedConsultations || 0,
+          uniquePatientsSeen: cData.totalConsultations || 0,
+          referralsCount: referralMap[cId] || 0,
+          assignedDoctorsCount: mData['DOCTOR'] || 0,
+          assignedVolunteersCount: mData['VOLUNTEER'] || 0
+        }
+      };
+    });
 
     return res.json({
       success: true,

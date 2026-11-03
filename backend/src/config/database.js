@@ -3,10 +3,16 @@ const config = require('./env');
 const logger = require('./logger');
 
 let memoryServerInstance = null;
+let cachedConnectPromise = null;
 
 async function connectDB(customUri) {
   try {
-    if (mongoose.connection && mongoose.connection.readyState >= 1) {
+    if (mongoose.connection && mongoose.connection.readyState === 1) {
+      return mongoose.connection;
+    }
+
+    if (cachedConnectPromise) {
+      await cachedConnectPromise;
       return mongoose.connection;
     }
 
@@ -29,38 +35,50 @@ async function connectDB(customUri) {
 
     mongoose.set('strictQuery', true);
 
-    try {
-      await mongoose.connect(uri, {
-        serverSelectionTimeoutMS: isVercel ? 12000 : 5000,
-        autoIndex: true,
-        tlsAllowInvalidCertificates: true
-      });
-      logger.info('Connected to MongoDB database successfully.');
-    } catch (connectErr) {
-      // In serverless Vercel environments, do not attempt to spawn embedded binaries
-      if (isVercel) {
-        logger.error({ error: connectErr.message }, 'Failed to connect to MongoDB Atlas on Vercel. Verify Network Access allows 0.0.0.0/0 in MongoDB Atlas.');
-        throw new Error(`Failed to connect to MongoDB Atlas on Vercel: ${connectErr.message}. Make sure Network Access (IP Access List) in MongoDB Atlas allows 0.0.0.0/0.`);
-      }
+    const mongooseOptions = {
+      serverSelectionTimeoutMS: isVercel ? 10000 : 5000,
+      socketTimeoutMS: 45000,
+      maxPoolSize: isVercel ? 10 : 25,
+      minPoolSize: isVercel ? 1 : 2,
+      family: 4, // Force IPv4 to eliminate IPv6 DNS timeout delays on cloud networks
+      autoIndex: !isVercel, // Disable expensive index checking on every serverless invocation
+      tlsAllowInvalidCertificates: true
+    };
 
-      // If remote connection failed in local dev, fall back automatically to in-memory server
-      if (!memoryServerInstance && !customUri) {
-        logger.warn({ error: connectErr.message }, 'Failed to connect to configured MongoDB URI. Falling back to embedded MongoDB Memory Server...');
-        const { MongoMemoryServer } = require('mongodb-memory-server');
-        memoryServerInstance = await MongoMemoryServer.create();
-        uri = memoryServerInstance.getUri();
-        logger.info(`Embedded MongoDB Memory Server started successfully at ${uri}`);
+    cachedConnectPromise = (async () => {
+      try {
+        await mongoose.connect(uri, mongooseOptions);
+        logger.info('Connected to MongoDB database successfully.');
+      } catch (connectErr) {
+        // In serverless Vercel environments, do not attempt to spawn embedded binaries
+        if (isVercel) {
+          logger.error({ error: connectErr.message }, 'Failed to connect to MongoDB Atlas on Vercel.');
+          throw new Error(`Failed to connect to MongoDB Atlas on Vercel: ${connectErr.message}. Make sure Network Access (IP Access List) in MongoDB Atlas allows 0.0.0.0/0.`);
+        }
 
-        await mongoose.connect(uri, {
-          serverSelectionTimeoutMS: 5000,
-          autoIndex: true,
-          tlsAllowInvalidCertificates: true
-        });
-        logger.info('Connected to embedded MongoDB Memory Server successfully.');
-      } else {
-        throw connectErr;
+        // If remote connection failed in local dev, fall back automatically to in-memory server
+        if (!memoryServerInstance && !customUri) {
+          logger.warn({ error: connectErr.message }, 'Failed to connect to configured MongoDB URI. Falling back to embedded MongoDB Memory Server...');
+          const { MongoMemoryServer } = require('mongodb-memory-server');
+          memoryServerInstance = await MongoMemoryServer.create();
+          uri = memoryServerInstance.getUri();
+          logger.info(`Embedded MongoDB Memory Server started successfully at ${uri}`);
+
+          await mongoose.connect(uri, {
+            ...mongooseOptions,
+            autoIndex: true
+          });
+          logger.info('Connected to embedded MongoDB Memory Server successfully.');
+        } else {
+          throw connectErr;
+        }
       }
-    }
+    })().catch(err => {
+      cachedConnectPromise = null;
+      throw err;
+    });
+
+    await cachedConnectPromise;
 
     mongoose.connection.on('error', (err) => {
       logger.error({ err }, 'MongoDB connection error occurred');

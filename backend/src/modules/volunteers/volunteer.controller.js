@@ -5,24 +5,44 @@ const Visit = require('../visits/visit.model');
 const { hashPassword } = require('../../utils/security');
 const { logAuditEvent } = require('../../services/audit.service');
 
-// Get all volunteers
+// Get all volunteers (High-performance batch aggregation)
 async function getVolunteers(req, res) {
   try {
     const volunteers = await Volunteer.find()
       .populate('userId', 'email role accountStatus')
       .populate('profileImageAssetId')
       .populate('assignedCampId', 'name campCode district upazila status date venue')
-      .sort({ fullName: 1 });
+      .sort({ fullName: 1 })
+      .lean();
+
+    if (volunteers.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
 
     const volunteerIds = volunteers.map(v => v._id);
     const userIds = volunteers.map(v => v.userId?._id || v.userId).filter(Boolean);
 
-    const campMembers = await CampMember.find({
-      $or: [
-        { volunteerId: { $in: volunteerIds } },
-        { userId: { $in: userIds } }
-      ]
-    }).populate('campId', 'name campCode district upazila status date venue');
+    // Run parallel batch lookups & aggregations instead of N*2 sequential roundtrips
+    const [campMembers, visitAgg, memberVolAgg, memberUserAgg] = await Promise.all([
+      CampMember.find({
+        $or: [
+          { volunteerId: { $in: volunteerIds } },
+          { userId: { $in: userIds } }
+        ]
+      }).populate('campId', 'name campCode district upazila status date venue').lean(),
+      Visit.aggregate([
+        { $match: { registeredBy: { $in: userIds } } },
+        { $group: { _id: '$registeredBy', count: { $sum: 1 } } }
+      ]),
+      CampMember.aggregate([
+        { $match: { volunteerId: { $in: volunteerIds } } },
+        { $group: { _id: '$volunteerId', count: { $sum: 1 } } }
+      ]),
+      CampMember.aggregate([
+        { $match: { userId: { $in: userIds } } },
+        { $group: { _id: '$userId', count: { $sum: 1 } } }
+      ])
+    ]);
 
     const campMemberMap = {};
     const userCampMemberMap = {};
@@ -38,31 +58,38 @@ async function getVolunteers(req, res) {
       }
     });
 
-    const volunteersWithStats = await Promise.all(
-      volunteers.map(async vol => {
-        let registrationCount = 0;
-        const uId = vol.userId?._id || vol.userId;
-        if (uId) {
-          registrationCount = await Visit.countDocuments({ registeredBy: uId });
-        }
-        const assignedCampsCount = await CampMember.countDocuments({
-          $or: [
-            { volunteerId: vol._id },
-            ...(uId ? [{ userId: uId }] : [])
-          ]
-        });
-        const assignedCamp = vol.assignedCampId || campMemberMap[vol._id.toString()] || (uId ? userCampMemberMap[uId.toString()] : null) || null;
+    const visitCountMap = {};
+    visitAgg.forEach(v => {
+      visitCountMap[v._id.toString()] = v.count || 0;
+    });
 
-        return {
-          ...vol.toObject(),
-          assignedCamp,
-          stats: {
-            registrationCount,
-            assignedCampsCount
-          }
-        };
-      })
-    );
+    const volCampCountMap = {};
+    memberVolAgg.forEach(m => {
+      volCampCountMap[m._id.toString()] = m.count || 0;
+    });
+
+    const userCampCountMap = {};
+    memberUserAgg.forEach(m => {
+      userCampCountMap[m._id.toString()] = m.count || 0;
+    });
+
+    const volunteersWithStats = volunteers.map(vol => {
+      const uId = vol.userId?._id ? vol.userId._id.toString() : (vol.userId ? vol.userId.toString() : null);
+      const vId = vol._id.toString();
+
+      const registrationCount = uId ? (visitCountMap[uId] || 0) : 0;
+      const assignedCampsCount = (volCampCountMap[vId] || 0) + (uId ? (userCampCountMap[uId] || 0) : 0);
+      const assignedCamp = vol.assignedCampId || campMemberMap[vId] || (uId ? userCampMemberMap[uId] : null) || null;
+
+      return {
+        ...vol,
+        assignedCamp,
+        stats: {
+          registrationCount,
+          assignedCampsCount
+        }
+      };
+    });
 
     return res.json({
       success: true,

@@ -27,22 +27,26 @@ async function searchPatients(req, res) {
       ]
     };
 
-    const patients = await Patient.find(searchFilter).limit(20);
+    const patients = await Patient.find(searchFilter).limit(20).lean();
 
-    // If campId is specified, attach this camp's visit details if registered
-    const results = await Promise.all(
-      patients.map(async p => {
-        let currentCampVisit = null;
-        if (campId) {
-          currentCampVisit = await Visit.findOne({ patientId: p._id, campId });
-        }
-        return {
-          ...p.toObject(),
-          isRegisteredInSelectedCamp: Boolean(currentCampVisit),
-          currentCampVisit
-        };
-      })
-    );
+    // If campId is specified, batch-lookup visits in one single query instead of 20 sequential queries
+    let visitMap = {};
+    if (campId && patients.length > 0) {
+      const patientIds = patients.map(p => p._id);
+      const campVisits = await Visit.find({ patientId: { $in: patientIds }, campId }).lean();
+      campVisits.forEach(v => {
+        visitMap[v.patientId.toString()] = v;
+      });
+    }
+
+    const results = patients.map(p => {
+      const currentCampVisit = visitMap[p._id.toString()] || null;
+      return {
+        ...p,
+        isRegisteredInSelectedCamp: Boolean(currentCampVisit),
+        currentCampVisit
+      };
+    });
 
     return res.json({
       success: true,
@@ -190,7 +194,8 @@ async function getPatientById(req, res) {
     const visits = await Visit.find({ patientId: patient._id })
       .populate('campId', 'name campCode date status venue')
       .populate('registeredBy', 'name')
-      .sort({ registeredAt: -1 });
+      .sort({ registeredAt: -1 })
+      .lean();
 
     // Role-limited medical history:
     // Only Doctors and Super Admins can view consultation details and medical records!
@@ -200,7 +205,8 @@ async function getPatientById(req, res) {
         .populate('doctorId', 'fullName specialty designation')
         .populate('campId', 'name campCode date')
         .populate('prescriptionImageAssetIds')
-        .sort({ startedAt: -1 });
+        .sort({ startedAt: -1 })
+        .lean();
     }
 
     return res.json({
@@ -227,7 +233,8 @@ async function getCampRegistrations(req, res) {
     const visits = await Visit.find({ campId })
       .populate('patientId')
       .populate('registeredBy', 'name role')
-      .sort({ visitToken: 1 });
+      .sort({ visitToken: 1 })
+      .lean();
 
     return res.json({
       success: true,

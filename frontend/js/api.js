@@ -158,8 +158,30 @@ function getApiUrl(endpoint) {
   return `http://localhost:5000${cleanEndpoint}`;
 }
 
+// In-memory fast API cache for GET queries with automatic invalidation on mutations
+const apiResponseCache = new Map();
+const DEFAULT_CACHE_TTL_MS = 20000; // 20 seconds TTL
+
+function clearApiCache() {
+  apiResponseCache.clear();
+}
+window.clearApiCache = clearApiCache;
+
 async function apiFetch(endpoint, options = {}) {
+  const method = (options.method || 'GET').toUpperCase();
   const url = getApiUrl(endpoint);
+
+  // If a mutation request (POST, PUT, PATCH, DELETE) occurs, bust read cache immediately
+  if (!['GET', 'HEAD'].includes(method)) {
+    clearApiCache();
+  } else if (!options.bypassCache) {
+    const cached = apiResponseCache.get(url);
+    if (cached && (Date.now() - cached.timestamp < (options.cacheTtl || DEFAULT_CACHE_TTL_MS))) {
+      // Return deep copy or structured data from in-memory cache instantly
+      return JSON.parse(JSON.stringify(cached.data));
+    }
+  }
+
   const csrfToken = getCookie('wcc_csrf');
   const authToken = typeof localStorage !== 'undefined' ? localStorage.getItem('wcc_token') : null;
   
@@ -211,6 +233,9 @@ async function apiFetch(endpoint, options = {}) {
       const data = await response.json();
       if (!response.ok) {
         throw new Error(data.message || 'রিকোয়েস্ট ব্যর্থ হয়েছে');
+      }
+      if (['GET', 'HEAD'].includes(method)) {
+        apiResponseCache.set(url, { timestamp: Date.now(), data });
       }
       return data;
     } else if (contentType.includes('text/csv') || contentType.includes('spreadsheetml')) {

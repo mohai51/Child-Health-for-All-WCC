@@ -1,25 +1,52 @@
 const Doctor = require('./doctor.model');
 const User = require('../users/user.model');
 const Consultation = require('../consultations/consultation.model');
+const Referral = require('../referrals/referral.model');
+const CampMember = require('../camps/campMember.model');
 const { hashPassword } = require('../../utils/security');
 const { getDoctorStats } = require('./doctor.service');
 const { logAuditEvent } = require('../../services/audit.service');
 
-// Get all doctors with stats and assigned camps
+// Get all doctors with stats and assigned camps (High-performance batch aggregation)
 async function getDoctors(req, res) {
   try {
-    const CampMember = require('../camps/campMember.model');
-
     const doctors = await Doctor.find()
       .populate('userId', 'email role accountStatus')
       .populate('profileImageAssetId')
       .populate('assignedCampId', 'name campCode district upazila status date venue')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    // Lookup camp assignments for doctors if not already in assignedCampId
+    if (doctors.length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
     const doctorIds = doctors.map(d => d._id);
-    const campMembers = await CampMember.find({ doctorId: { $in: doctorIds } })
-      .populate('campId', 'name campCode district upazila status date venue');
+
+    // Run parallel batch lookups & aggregations instead of N*5 sequential roundtrips
+    const [campMembers, consultAgg, referralAgg, memberRoleAgg] = await Promise.all([
+      CampMember.find({ doctorId: { $in: doctorIds } })
+        .populate('campId', 'name campCode district upazila status date venue')
+        .lean(),
+      Consultation.aggregate([
+        { $match: { doctorId: { $in: doctorIds } } },
+        {
+          $group: {
+            _id: '$doctorId',
+            totalConsultations: { $sum: 1 },
+            uniquePatients: { $addToSet: '$patientId' }
+          }
+        }
+      ]),
+      Referral.aggregate([
+        { $match: { referringDoctorId: { $in: doctorIds } } },
+        { $group: { _id: '$referringDoctorId', count: { $sum: 1 } } }
+      ]),
+      CampMember.aggregate([
+        { $match: { doctorId: { $in: doctorIds }, campRole: 'DOCTOR' } },
+        { $group: { _id: '$doctorId', count: { $sum: 1 } } }
+      ])
+    ]);
 
     const campMemberMap = {};
     campMembers.forEach(cm => {
@@ -28,33 +55,51 @@ async function getDoctors(req, res) {
       }
     });
 
-    const doctorsWithStats = await Promise.all(
-      doctors.map(async doc => {
-        const stats = await getDoctorStats(doc._id);
-        const obj = doc.toObject();
+    const consultMap = {};
+    consultAgg.forEach(c => {
+      consultMap[c._id.toString()] = {
+        totalConsultations: c.totalConsultations || 0,
+        uniquePatientsSeen: c.uniquePatients ? c.uniquePatients.length : 0
+      };
+    });
 
-        // Effective assigned camp
-        const assignedCamp = doc.assignedCampId || campMemberMap[doc._id.toString()] || null;
+    const referralMap = {};
+    referralAgg.forEach(r => {
+      referralMap[r._id.toString()] = r.count || 0;
+    });
 
-        // Display photo URL
-        let displayPhoto = doc.photoUrl;
-        if (!displayPhoto && doc.profileImageAssetId) {
-          displayPhoto = doc.profileImageAssetId.directUrl || `/api/images/${doc.profileImageAssetId._id || doc.profileImageAssetId}`;
+    const memberRoleMap = {};
+    memberRoleAgg.forEach(m => {
+      memberRoleMap[m._id.toString()] = m.count || 0;
+    });
+
+    const doctorsWithStats = doctors.map(doc => {
+      const docIdStr = doc._id.toString();
+      const cData = consultMap[docIdStr] || { totalConsultations: 0, uniquePatientsSeen: 0 };
+      const assignedCamp = doc.assignedCampId || campMemberMap[docIdStr] || null;
+
+      let displayPhoto = doc.photoUrl;
+      if (!displayPhoto && doc.profileImageAssetId) {
+        displayPhoto = doc.profileImageAssetId.directUrl || `/api/images/${doc.profileImageAssetId._id || doc.profileImageAssetId}`;
+      }
+
+      const obj = { ...doc };
+      if (req.user && req.user.role !== 'SUPER_ADMIN' && req.user._id?.toString() !== doc.userId?._id?.toString()) {
+        delete obj.phone;
+      }
+
+      return {
+        ...obj,
+        assignedCamp,
+        displayPhoto,
+        stats: {
+          totalConsultations: cData.totalConsultations,
+          uniquePatientsSeen: cData.uniquePatientsSeen,
+          totalReferrals: referralMap[docIdStr] || 0,
+          assignedCampsCount: memberRoleMap[docIdStr] || 0
         }
-
-        // Hide phone from non-admin if not self
-        if (req.user && req.user.role !== 'SUPER_ADMIN' && req.user._id?.toString() !== doc.userId?._id?.toString()) {
-          delete obj.phone;
-        }
-
-        return {
-          ...obj,
-          assignedCamp,
-          displayPhoto,
-          stats
-        };
-      })
-    );
+      };
+    });
 
     return res.json({
       success: true,

@@ -119,15 +119,7 @@ app.use(async (req, res, next) => {
 
   if (!dbConnectionPromise) {
     const { connectDB } = require('./config/database');
-    const { seedInitialData } = require('./scripts/seed');
-    dbConnectionPromise = (async () => {
-      await connectDB();
-      try {
-        await seedInitialData();
-      } catch (e) {
-        // seed errors non-fatal
-      }
-    })().catch(err => {
+    dbConnectionPromise = connectDB().catch(err => {
       logger.error({ err: err.message }, 'Failed to connect DB in serverless middleware');
       dbConnectionPromise = null;
       throw err;
