@@ -6,7 +6,7 @@
 let selectedCampId = null;
 let campsCacheMap = {};
 
-async function initPatientDesk() {
+document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkAuth(['REGISTRATION_VOLUNTEER', 'SUPER_ADMIN', 'CAMP_COORDINATOR']);
   if (!user) return;
 
@@ -33,13 +33,7 @@ async function initPatientDesk() {
   if (patientIdParam) {
     loadAndShowPatientSlip(patientIdParam);
   }
-}
-
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initPatientDesk);
-} else {
-  initPatientDesk();
-}
+});
 
 // Load active camps dropdown and automatically pre-fill location
 async function loadActiveCampsForRegistration() {
@@ -91,7 +85,7 @@ async function loadActiveCampsForRegistration() {
     select.innerHTML = camps.map(c => {
       const isSelected = String(c._id) === String(preferredCampId);
       const pourashavaStr = c.isPourashava && c.pourashavaName ? ` [${c.pourashavaName}]` : '';
-      const statusIcon = c.status === 'ACTIVE' ? '🟢' : '⚪';
+      const statusIcon = c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]';
       return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>${statusIcon} ${c.name} (${c.campCode} - ${c.venue}${pourashavaStr})</option>`;
     }).join('');
 

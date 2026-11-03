@@ -17,7 +17,7 @@ let selectedPrescriptionFile = null;
 let cameraMediaStream = null;
 let currentFacingMode = 'environment'; // Back camera by default on phones
 
-async function initConsultationDesk() {
+document.addEventListener('DOMContentLoaded', async () => {
   const user = await checkAuth(['DOCTOR', 'SUPER_ADMIN']);
   if (!user) return;
 
@@ -155,18 +155,11 @@ async function initConsultationDesk() {
         }
       } else {
         prevBox.style.display = 'none';
-        viewPrevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
+        viewPrevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
       }
     });
   }
-}
-
-// Safely execute initialization whether document is loading or already ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initConsultationDesk);
-} else {
-  initConsultationDesk();
-}
+});
 
 // Load active camps
 async function loadDoctorCamps() {
@@ -212,7 +205,7 @@ async function loadDoctorCamps() {
 
     campSelect.innerHTML = doctorAssignedCamps.map(c => {
       const isSelected = String(c._id) === String(preferredCampId);
-      const icon = c.status === 'ACTIVE' ? '🟢' : '⚪';
+      const icon = c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]';
       return `<option value="${c._id}" ${isSelected ? 'selected' : ''}>${icon} ${c.name} (${c.campCode})</option>`;
     }).join('');
 
@@ -245,11 +238,13 @@ async function searchPatientInCamp() {
     return;
   }
 
-  const campSelect = document.getElementById('doctor-camp-select');
-  if (campSelect && campSelect.value) {
-    activeConsultationCampId = campSelect.value;
-  } else if (!activeConsultationCampId && doctorAssignedCamps.length > 0) {
-    activeConsultationCampId = doctorAssignedCamps[0]._id;
+  if (!activeConsultationCampId) {
+    const campSelect = document.getElementById('doctor-camp-select');
+    if (campSelect && campSelect.value) {
+      activeConsultationCampId = campSelect.value;
+    } else if (doctorAssignedCamps.length > 0) {
+      activeConsultationCampId = doctorAssignedCamps[0]._id;
+    }
   }
 
   const targetCampId = activeConsultationCampId || 'active';
@@ -375,7 +370,7 @@ function renderPatientDetails(data) {
         if (assetId) {
           prevBtn.style.display = 'inline-flex';
           prevBtn.dataset.assetId = String(assetId);
-          prevBtn.innerHTML = '🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
+          prevBtn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:6px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন';
         } else {
           prevBtn.style.display = 'none';
           prevBtn.dataset.assetId = '';

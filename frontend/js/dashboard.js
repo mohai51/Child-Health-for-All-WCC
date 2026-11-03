@@ -99,8 +99,9 @@ function renderCampCards(camps) {
           </div>
         </div>
 
-        <a href="/pages/camps.html?campId=${camp.id}" class="btn btn-outline btn-block" style="margin-top: 8px;">
-          📊 ক্যাম্প অ্যানালিটিক্স ও বিবরণ
+        <a href="/pages/camps.html?campId=${camp.id}" class="btn btn-outline btn-block" style="margin-top: 8px; display:inline-flex; align-items:center; justify-content:center; gap:6px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span>ক্যাম্প অ্যানালিটিক্স ও বিবরণ</span>
         </a>
       </div>
     `;

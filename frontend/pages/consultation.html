@@ -154,7 +154,7 @@
               <div style="flex:1;">
                 <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
                   <span style="font-size:1.15rem; font-weight:800; color:#991B1B;">
-                    ⚠️ এই রোগীকে আগেই দেখা হয়েছে (Patient Already Examined)
+                    এই রোগীকে আগেই দেখা হয়েছে (Patient Already Examined)
                   </span>
                   <span id="ac-referral-badge" style="display:none; background:#DC2626; color:white; font-size:0.8rem; padding:4px 10px; border-radius:20px; font-weight:700;">
                     রেফারেলকৃত
@@ -169,14 +169,16 @@
                 <div style="background:#FFFFFF; padding:10px 14px; border-radius:6px; border:1px solid #FECACA; font-size:0.95rem; color:#1E293B; margin-bottom:12px;">
                   <b style="color:#991B1B;">পূর্বের রোগ নির্ণয় / ব্যবস্থাপত্র:</b> 
                   <span id="ac-diagnosis" style="font-weight:600; margin-left:6px;">-</span>
-                  <div id="ac-referral-dest-box" style="display:none; margin-top:6px; font-size:0.9rem; color:#B45309; font-weight:600;">
-                    🏥 রেফারেল গন্তব্য: <span id="ac-referral-dest">-</span>
+                  <div id="ac-referral-dest-box" style="display:none; margin-top:6px; font-size:0.9rem; color:#B45309; font-weight:600; display:flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                    <span>রেফারেল গন্তব্য:</span> <span id="ac-referral-dest">-</span>
                   </div>
                 </div>
 
                 <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-                  <button type="button" id="view-previous-prescription-btn" class="btn btn-sm btn-outline" style="border-color:#DC2626; color:#DC2626; background:white; font-weight:700; padding:6px 14px;">
-                    🖼️ পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন
+                  <button type="button" id="view-previous-prescription-btn" class="btn btn-sm btn-outline" style="border-color:#DC2626; color:#DC2626; background:white; font-weight:700; padding:6px 14px; display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <span>পূর্বের সংরক্ষিত প্রেসক্রিপশন দেখুন</span>
                   </button>
                   <span style="font-size:0.85rem; color:#991B1B; font-weight:600;">
                     (প্রয়োজনে নিচে নতুন প্রেসক্রিপশন ছবি তুলে পুনরায় আপডেট করতে পারবেন)
@@ -187,8 +189,9 @@
                 <div id="previous-prescription-preview-box" style="display:none; margin-top:14px; text-align:center; background:#0F172A; padding:16px; border-radius:8px;">
                   <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
                     <span style="color:white; font-size:0.9rem; font-weight:700;">পূর্বে সংরক্ষিত প্রেসক্রিপশন ছবি:</span>
-                    <a id="open-prev-prescription-full" href="#" target="_blank" class="btn btn-sm" style="background:#2563EB; color:white; font-size:0.8rem; padding:4px 12px; border-radius:4px; text-decoration:none; display:none;">
-                      🔍 বড় করে দেখুন (New Tab)
+                    <a id="open-prev-prescription-full" href="#" target="_blank" class="btn btn-sm" style="background:#2563EB; color:white; font-size:0.8rem; padding:4px 12px; border-radius:4px; text-decoration:none; display:none; align-items:center; gap:6px;">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      <span>বড় করে দেখুন (New Tab)</span>
                     </a>
                   </div>
                   <div id="prev-prescription-status" style="color:#94A3B8; font-size:0.85rem; margin-bottom:8px; min-height:20px;"></div>
@@ -355,7 +358,7 @@
                   </label>
                   <select id="referral-hospital-select" class="form-control" style="font-weight:600; font-size:0.95rem; border:2px solid #F59E0B; background:#FFFFFF;">
                     <option value="">-- সরকারি হাসপাতাল নির্বাচন করুন --</option>
-                    <optgroup label="🏥 ঝালকাঠি ও বরিশাল বিভাগ">
+                    <optgroup label="ঝালকাঠি ও বরিশাল বিভাগ">
                       <option value="ঝালকাঠি সদর হাসপাতাল">ঝালকাঠি সদর হাসপাতাল (১০০ শয্যা)</option>
                       <option value="বরিশাল শের-ই-বাংলা মেডিকেল কলেজ ও হাসপাতাল (SBMCH - শিশু বিভাগ)">বরিশাল শের-ই-বাংলা মেডিকেল কলেজ ও হাসপাতাল (SBMCH - শিশু বিভাগ)</option>
                       <option value="ঝালকাঠি মা ও শিশু কল্যাণ কেন্দ্র (MCH)">ঝালকাঠি মা ও শিশু কল্যাণ কেন্দ্র (MCH)</option>
@@ -364,7 +367,7 @@
                       <option value="কাঁঠালিয়া উপজেলা স্বাস্থ্য কমপ্লেক্স">কাঁঠালিয়া উপজেলা স্বাস্থ্য কমপ্লেক্স</option>
                       <option value="বরিশাল জেনারেল হাসপাতাল (সদর হাসপাতাল)">বরিশাল জেনারেল হাসপাতাল (সদর হাসপাতাল)</option>
                     </optgroup>
-                    <optgroup label="🏥 ঢাকা বিভাগ (বিশেষায়িত শিশু ও সরকারি হাসপাতাল)">
+                    <optgroup label="ঢাকা বিভাগ (বিশেষায়িত শিশু ও সরকারি হাসপাতাল)">
                       <option value="বাংলাদেশ শিশু হাসপাতাল ও ইনস্টিটিউট (শের-ই-বাংলা নগর, ঢাকা)">বাংলাদেশ শিশু হাসপাতাল ও ইনস্টিটিউট (শের-ই-বাংলা নগর, ঢাকা)</option>
                       <option value="ঢাকা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)">ঢাকা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)</option>
                       <option value="মাতুয়াইল শিশু ও মাতৃ স্বাস্থ্য ইনস্টিটিউট (ICMH), ঢাকা">মাতুয়াইল শিশু ও মাতৃ স্বাস্থ্য ইনস্টিটিউট (ICMH), ঢাকা</option>
@@ -376,7 +379,7 @@
                       <option value="জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (NIDCH - শিশু বিভাগ, ঢাকা)">জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (NIDCH - শিশু বিভাগ, ঢাকা)</option>
                       <option value="কুর্মিটোলা জেনারেল হাসপাতাল (শিশু বিভাগ)">কুর্মিটোলা জেনারেল হাসপাতাল (শিশু বিভাগ)</option>
                     </optgroup>
-                    <optgroup label="🏥 অন্যান্য">
+                    <optgroup label="অন্যান্য সরকারি হাসপাতাল">
                       <option value="অন্যান্য সরকারি হাসপাতাল">অন্যান্য সরকারি হাসপাতাল / বিশেষায়িত কেন্দ্র</option>
                     </optgroup>
                   </select>
@@ -410,8 +413,9 @@
     </div>
   </div>
 
-  <script src="/js/api.js?v=20261103_2355"></script>
-  <script src="/js/auth.js?v=20261103_2355"></script>
-  <script src="/js/consultations.js?v=20261103_2355"></script>
+  <script src="/js/api.js?v=20261104_0030"></script>
+  <script src="/js/auth.js?v=20261104_0030"></script>
+  <script src="/js/consultations.js?v=20261104_0030"></script>
+  <script src="/js/footer.js?v=20261104_0030"></script>
 </body>
 </html>

@@ -190,12 +190,12 @@ function renderCampsTable() {
     const isActive = camp.status === 'ACTIVE';
 
     const statusBadge = isActive
-      ? '<span class="status-badge active" style="font-size:0.8rem; font-weight:700; margin-left:12px;">🟢 চালু (ডাক্তার ও ভলান্টিয়ার যুক্ত করার জন্য উন্মুক্ত)</span>'
-      : '<span class="status-badge closed" style="font-size:0.8rem; font-weight:700; margin-left:12px; background:#f1f5f9; color:#64748b;">⚪ অফ</span>';
+      ? '<span class="status-badge active" style="font-size:0.8rem; font-weight:700; margin-left:12px; display:inline-flex; align-items:center; gap:6px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#16a34a"><circle cx="12" cy="12" r="10"/></svg> চালু (উন্মুক্ত)</span>'
+      : '<span class="status-badge closed" style="font-size:0.8rem; font-weight:700; margin-left:12px; background:#f1f5f9; color:#64748b; display:inline-flex; align-items:center; gap:6px;"><svg width="10" height="10" viewBox="0 0 24 24" fill="#94a3b8"><circle cx="12" cy="12" r="10"/></svg> অফ</span>';
 
     const actionButton = isActive
-      ? `<button type="button" data-camp-id="${camp._id}" data-action="CLOSE" onclick="toggleCampStatus('${camp._id}', 'CLOSE', this)" class="btn btn-danger btn-camp-toggle" style="padding:8px 22px; font-weight:700; border-radius:6px; cursor:pointer;" title="ক্যাম্পটি অফ করুন">🔴 অফ করুন</button>`
-      : `<button type="button" data-camp-id="${camp._id}" data-action="ACTIVATE" onclick="toggleCampStatus('${camp._id}', 'ACTIVATE', this)" class="btn btn-success btn-camp-toggle" style="padding:8px 22px; font-weight:700; border-radius:6px; cursor:pointer;" title="ক্যাম্পটি চালু করুন">🟢 চালু করুন</button>`;
+      ? `<button type="button" data-camp-id="${camp._id}" data-action="CLOSE" onclick="toggleCampStatus('${camp._id}', 'CLOSE', this)" class="btn btn-danger btn-camp-toggle" style="padding:8px 18px; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="ক্যাম্পটি অফ করুন"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg> অফ করুন</button>`
+      : `<button type="button" data-camp-id="${camp._id}" data-action="ACTIVATE" onclick="toggleCampStatus('${camp._id}', 'ACTIVATE', this)" class="btn btn-success btn-camp-toggle" style="padding:8px 18px; font-weight:700; border-radius:6px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;" title="ক্যাম্পটি চালু করুন"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> চালু করুন</button>`;
 
     return `
       <tr style="border-bottom: 1px solid var(--border-color);">

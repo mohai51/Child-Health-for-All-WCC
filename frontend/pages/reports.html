@@ -228,7 +228,7 @@
         <div class="card report-card">
           <div class="report-header-flex">
             <div class="report-title">
-              <span>📋 ১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)</span>
+              <span>১. রোগী ও ক্যাম্প বিবরণী রিপোর্ট (Patient & Summary Report)</span>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-1" class="btn-pdf-download">
@@ -245,21 +245,27 @@
           <!-- Summary Highlights (রোগী, ভলান্টিয়ার, ডাক্তার) -->
           <div class="summary-stats-box">
             <div class="summary-stat-pill">
-              <div class="pill-icon" style="color: #16a34a;">👥</div>
+              <div class="pill-icon" style="color: #16a34a;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              </div>
               <div>
                 <div id="stat-patients-seen" class="pill-value">০ জন</div>
                 <div class="pill-label">মোট রোগী দেখা হয়েছে</div>
               </div>
             </div>
             <div class="summary-stat-pill pill-blue">
-              <div class="pill-icon" style="color: #0284c7;">🤝</div>
+              <div class="pill-icon" style="color: #0284c7;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+              </div>
               <div>
                 <div id="stat-volunteers-count" class="pill-value">০ জন</div>
                 <div class="pill-label">কতজন ভলান্টিয়ার ছিল</div>
               </div>
             </div>
             <div class="summary-stat-pill pill-purple">
-              <div class="pill-icon" style="color: #9333ea;">👨‍⚕️</div>
+              <div class="pill-icon" style="color: #9333ea;">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              </div>
               <div>
                 <div id="stat-doctors-count" class="pill-value">০ জন</div>
                 <div class="pill-label">কতজন ডাক্তার ছিল</div>
@@ -295,7 +301,7 @@
         <div class="card report-card">
           <div class="report-header-flex">
             <div class="report-title">
-              <span>🤝 ২. স্বেচ্ছাসেবক তালিকা (Volunteer List)</span>
+              <span>২. স্বেচ্ছাসেবক তালিকা (Volunteer List)</span>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-2" class="btn-pdf-download">
@@ -332,7 +338,7 @@
         <div class="card report-card">
           <div class="report-header-flex">
             <div class="report-title">
-              <span>🩺 ৩. চিকিৎসক তালিকা (Doctor List)</span>
+              <span>৩. চিকিৎসক তালিকা (Doctor List)</span>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button id="btn-pdf-3" class="btn-pdf-download">
@@ -367,9 +373,10 @@
     </div>
   </div>
 
-  <script src="/js/api.js"></script>
-  <script src="/js/auth.js"></script>
+  <script src="/js/api.js?v=20261104_0030"></script>
+  <script src="/js/auth.js?v=20261104_0030"></script>
   <script src="/js/html2pdf.bundle.min.js"></script>
+  <script src="/js/footer.js?v=20261104_0030"></script>
   <script>
     let currentCampId = null;
     let currentCampData = null;
@@ -405,7 +412,7 @@
           }
 
           select.innerHTML = camps.map(c => `
-            <option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name} (${c.campCode} - ${toBanglaDate(c.date)})</option>
+            <option value="${c._id}">${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name} (${c.campCode} - ${toBanglaDate(c.date)})</option>
           `).join('');
 
           currentCampId = select.value;

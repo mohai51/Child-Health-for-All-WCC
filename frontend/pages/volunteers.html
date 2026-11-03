@@ -264,8 +264,9 @@
         <p style="font-size:0.95rem; color:var(--text-main); margin-bottom:12px; line-height:1.5;">
           আপনি কি নিশ্চিত যে <b id="delete-volunteer-name" style="color:var(--danger);"></b> স্বেচ্ছাসেবককে তালিকা থেকে মুছে ফেলতে চান?
         </p>
-        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; font-size:0.85rem; color:#991b1b; line-height:1.4;">
-          ⚠️ <b>সতর্কতা:</b> মুছে ফেললে এই স্বেচ্ছাসেবকের সমস্ত প্রোফাইল তথ্য, ক্যাম্প অ্যাসাইনমেন্ট এবং লগইন অ্যাকাউন্ট সম্পূর্ণ অপসারিত হবে।
+        <div style="background:#fef2f2; border:1px solid #fecaca; border-radius:8px; padding:12px; font-size:0.85rem; color:#991b1b; line-height:1.4; display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <div><b>সতর্কতা:</b> মুছে ফেললে এই স্বেচ্ছাসেবকের সমস্ত প্রোফাইল তথ্য, ক্যাম্প অ্যাসাইনমেন্ট এবং লগইন অ্যাকাউন্ট সম্পূর্ণ অপসারিত হবে।</div>
         </div>
       </div>
       <div class="modal-footer" style="padding:16px 20px; display:flex; justify-content:flex-end; gap:10px;">
@@ -278,8 +279,9 @@
     </div>
   </div>
 
-  <script src="/js/api.js?v=20261103_1425"></script>
-  <script src="/js/auth.js?v=20261103_1425"></script>
+  <script src="/js/api.js?v=20261104_0030"></script>
+  <script src="/js/auth.js?v=20261104_0030"></script>
+  <script src="/js/footer.js?v=20261104_0030"></script>
   <script>
     function escapeHtml(text) {
       if (text === null || text === undefined) return '';
@@ -323,7 +325,7 @@
             campSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
           } else {
             campSelect.innerHTML = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>' +
-              allCampsList.map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`).join('');
+              allCampsList.map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name}</option>`).join('');
           }
         }
       } catch (e) {
@@ -348,7 +350,7 @@
       let optionsHtml = '<option value="">-- কোনো ক্যাম্প নির্ধারিত নেই --</option>';
       (allCampsList || []).forEach(c => {
         const isCurrent = String(c._id) === String(currentCampId);
-        optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '🟢' : '⚪'} ${c.name}</option>`;
+        optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name}</option>`;
       });
       editCampSelect.innerHTML = optionsHtml;
 
@@ -480,8 +482,8 @@
             const assignedCamp = v.assignedCamp || v.assignedCampId;
             const campName = assignedCamp?.name || (typeof assignedCamp === 'string' ? assignedCamp : null);
             const campBadge = campName
-              ? `<span class="status-badge active" style="font-weight:700;">🟢 ${escapeHtml(campName)}</span>`
-              : `<span class="status-badge closed" style="background:#f1f5f9; color:#64748b;">⚪ ক্যাম্প নির্ধারিত নেই</span>`;
+              ? `<span class="status-badge active" style="font-weight:700; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#16a34a"><circle cx="12" cy="12" r="10"/></svg> ${escapeHtml(campName)}</span>`
+              : `<span class="status-badge closed" style="background:#f1f5f9; color:#64748b; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#94a3b8"><circle cx="12" cy="12" r="10"/></svg> ক্যাম্প নির্ধারিত নেই</span>`;
 
             return `
               <tr>

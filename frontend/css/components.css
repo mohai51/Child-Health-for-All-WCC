@@ -696,3 +696,224 @@
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   Universal System Footer & Regnons Bangladesh Branding
+   ========================================================================== */
+.system-footer {
+  margin-top: auto;
+  background: #ffffff;
+  border-top: 1px solid var(--border-color);
+  padding: 16px 24px;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.system-footer .footer-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.system-footer .footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.system-footer .footer-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.system-footer .company-brand-link {
+  color: #0284c7;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: #f0f9ff;
+  border: 1px solid #bae6fd;
+  transition: all 0.2s ease;
+}
+
+.system-footer .company-brand-link:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-1px);
+}
+
+.system-footer .btn-dev-profile {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.system-footer .btn-dev-profile:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  transform: translateY(-1px);
+}
+
+/* Developer Profile Modal Styling */
+.dev-modal-card {
+  max-width: 440px !important;
+  border-radius: 14px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25) !important;
+  border: 1px solid #e2e8f0 !important;
+  animation: modalScaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: #ffffff;
+}
+
+.dev-profile-hero {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  padding: 28px 20px 20px 20px;
+  text-align: center;
+  color: #ffffff;
+  position: relative;
+}
+
+.dev-avatar-wrapper {
+  width: 96px;
+  height: 96px;
+  margin: 0 auto 12px auto;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, #38bdf8, #818cf8, #c084fc);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.dev-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #ffffff;
+  display: block;
+}
+
+.dev-name {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.3px;
+  color: #ffffff;
+}
+
+.dev-title {
+  font-size: 0.88rem;
+  color: #94a3b8;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.dev-company-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  background: rgba(56, 189, 248, 0.15);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  color: #38bdf8;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.dev-company-badge:hover {
+  background: #38bdf8;
+  color: #0f172a;
+}
+
+.dev-social-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 20px;
+  background: #ffffff;
+}
+
+.dev-social-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.dev-social-btn.fb {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.dev-social-btn.fb:hover {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.dev-social-btn.insta {
+  background: #fdf2f8;
+  color: #be185d;
+  border-color: #fbcfe8;
+}
+.dev-social-btn.insta:hover {
+  background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888);
+  color: #ffffff;
+}
+
+.dev-social-btn.linkedin {
+  background: #f0fdf4;
+  color: #047857;
+  border-color: #bbf7d0;
+}
+.dev-social-btn.linkedin:hover {
+  background: #0a66c2;
+  color: #ffffff;
+  border-color: #0a66c2;
+}
+
+.dev-social-btn.company {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+.dev-social-btn.company:hover {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+@keyframes modalScaleIn {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
