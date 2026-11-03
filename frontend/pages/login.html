@@ -8,53 +8,49 @@
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/responsive.css">
   <style>
-    .credential-card {
-      background: #f8fafc;
-      border: 1px solid #e2e8f0;
-      border-radius: 8px;
-      padding: 10px 14px;
-      cursor: pointer;
-      transition: all 0.2s ease;
+    .login-card {
+      width: 100%;
+      max-width: 440px;
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+      border: 1px solid var(--border-color);
+      padding: 36px 30px;
+    }
+    .password-input-wrapper {
+      position: relative;
       display: flex;
       align-items: center;
-      justify-content: space-between;
     }
-    .credential-card:hover {
-      background: #f0fdf4;
-      border-color: #86efac;
-      transform: translateY(-1px);
-    }
-    .credential-role {
-      font-weight: 700;
-      font-size: 0.88rem;
-      color: #0f172a;
-    }
-    .credential-email {
-      font-size: 0.78rem;
+    .password-toggle-btn {
+      position: absolute;
+      right: 12px;
+      background: none;
+      border: none;
       color: #64748b;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .btn-fill-badge {
-      font-size: 0.75rem;
-      font-weight: 600;
+    .password-toggle-btn:hover {
       color: var(--primary);
-      background: #e0f2fe;
-      padding: 4px 8px;
-      border-radius: 6px;
     }
   </style>
 </head>
 <body class="login-page-body" style="display:flex; align-items:center; justify-content:center; min-height:100vh; background: var(--bg-main); padding: 20px;">
-  <div class="login-card" style="width: 100%; max-width: 460px; background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border-color); padding: 32px 28px;">
+  <div class="login-card">
     
-    <div style="text-align: center; margin-bottom: 24px;">
-      <div class="brand-logo-badge" style="width: 76px; height: 76px; margin: 0 auto 12px; border: 3px solid var(--wcc-gold);">
+    <div style="text-align: center; margin-bottom: 28px;">
+      <div class="brand-logo-badge" style="width: 80px; height: 80px; margin: 0 auto 14px; border: 3px solid var(--wcc-gold);">
         <img src="/assets/logo.png" alt="WCC Logo" class="brand-logo-img">
       </div>
-      <h1 style="color: var(--primary); font-size: 1.5rem; font-weight:700;">উই ক্যান চেঞ্জ (WCC)</h1>
-      <p style="color: var(--text-muted); font-size: 0.9rem;">শিশু স্বাস্থ্য রেজিস্ট্রি ও মাল্টি-ক্যাম্প পোর্টাল</p>
+      <h1 style="color: var(--primary); font-size: 1.55rem; font-weight:800; margin-bottom: 4px;">উই ক্যান চেঞ্জ (WCC)</h1>
+      <p style="color: var(--text-muted); font-size: 0.92rem;">শিশু স্বাস্থ্য রেজিস্ট্রি ও মাল্টি-ক্যাম্প পোর্টাল</p>
     </div>
 
-    <!-- Official Login Form -->
+    <!-- Clean Official Login Form -->
     <form id="login-form">
       <div class="form-group">
         <label class="form-label required" for="email">ইমেইল বা লগইন আইডি</label>
@@ -63,63 +59,41 @@
 
       <div class="form-group">
         <label class="form-label required" for="password">পাসওয়ার্ড</label>
-        <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+        <div class="password-input-wrapper">
+          <input type="password" id="password" class="form-control" placeholder="আপনার পাসওয়ার্ড লিখুন" required autocomplete="current-password" style="padding-right: 40px;">
+          <button type="button" id="toggle-password-btn" class="password-toggle-btn" aria-label="পাসওয়ার্ড দেখুন" title="পাসওয়ার্ড দেখুন">
+            <svg id="eye-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+            <svg id="eye-off-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+          </button>
+        </div>
       </div>
 
-      <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 14px; font-weight:700;">
+      <button type="submit" id="login-submit-btn" class="btn btn-primary btn-block btn-lg" style="margin-top: 18px; font-weight:700; height:46px; font-size:1rem;">
         লগইন করুন (Sign In)
       </button>
     </form>
 
-    <!-- Quick Credentials Helper Box -->
-    <div style="margin-top: 26px; border-top: 1px dashed var(--border-color); padding-top: 18px;">
-      <div style="font-size: 0.82rem; font-weight: 700; color: #475569; margin-bottom: 10px; display:flex; align-items:center; justify-content:space-between;">
-        <span>অফিসিয়াল লগইন অ্যাকাউন্ট (ক্লিক করে অটো-ফিল করুন):</span>
-      </div>
-
-      <div style="display: flex; flex-direction: column; gap: 8px;">
-        <!-- Super Admin Card -->
-        <div class="credential-card" onclick="fillLoginForm('admin@wcc.org.bd', 'AdminPassword@123')">
-          <div>
-            <div class="credential-role">👑 সুপার অ্যাডমিন (Super Admin)</div>
-            <div class="credential-email">admin@wcc.org.bd &bull; AdminPassword@123</div>
-          </div>
-          <span class="btn-fill-badge">নির্বাচন</span>
-        </div>
-
-        <!-- Doctor Card -->
-        <div class="credential-card" onclick="fillLoginForm('doctor@wcc.org.bd', 'Doctor@123')">
-          <div>
-            <div class="credential-role">🩺 চিকিৎসক (ডা. ফারহানা হক)</div>
-            <div class="credential-email">doctor@wcc.org.bd &bull; Doctor@123</div>
-          </div>
-          <span class="btn-fill-badge">নির্বাচন</span>
-        </div>
-
-        <!-- Volunteer Card -->
-        <div class="credential-card" onclick="fillLoginForm('volunteer@wcc.org.bd', 'Volunteer@123')">
-          <div>
-            <div class="credential-role">🤝 ভলান্টিয়ার (সাদিয়া সুলতানা)</div>
-            <div class="credential-email">volunteer@wcc.org.bd &bull; Volunteer@123</div>
-          </div>
-          <span class="btn-fill-badge">নির্বাচন</span>
-        </div>
-      </div>
-    </div>
-
-    <div style="text-align: center; margin-top: 20px; font-size: 0.8rem; color: var(--text-light);">
-      নিরাপদ ও এনক্রিপ্টেড সেশন ব্যবস্থাপনা
+    <div style="text-align: center; margin-top: 24px; font-size: 0.8rem; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 16px;">
+      🔒 নিরাপদ ও এনক্রিপ্টেড সেশন ব্যবস্থাপনা &bull; WCC
     </div>
   </div>
 
   <script src="/js/api.js"></script>
   <script>
-    function fillLoginForm(email, password) {
-      document.getElementById('email').value = email;
-      document.getElementById('password').value = password;
-      document.getElementById('password').focus();
+    // Toggle password visibility
+    const togglePassBtn = document.getElementById('toggle-password-btn');
+    const passwordInput = document.getElementById('password');
+    const eyeIcon = document.getElementById('eye-icon');
+    const eyeOffIcon = document.getElementById('eye-off-icon');
+
+    if (togglePassBtn && passwordInput) {
+      togglePassBtn.addEventListener('click', () => {
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        if (eyeIcon) eyeIcon.style.display = isPassword ? 'none' : 'block';
+        if (eyeOffIcon) eyeOffIcon.style.display = isPassword ? 'block' : 'none';
+      });
     }
-    window.fillLoginForm = fillLoginForm;
 
     // Handle real API login submission
     document.getElementById('login-form').addEventListener('submit', async (e) => {
@@ -165,9 +139,6 @@
         btn.innerHTML = originalText;
       }
     });
-
-    // Default fill admin credentials for convenience
-    fillLoginForm('admin@wcc.org.bd', 'AdminPassword@123');
   </script>
 </body>
 </html>
