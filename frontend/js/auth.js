@@ -166,25 +166,70 @@ async function logout() {
 function initMobileMenu() {
   const toggleBtn = document.querySelector('.mobile-menu-toggle');
   const sidebar = document.querySelector('.sidebar');
-  let backdrop = document.querySelector('.sidebar-backdrop');
+  if (!sidebar) return;
 
+  let backdrop = document.querySelector('.sidebar-backdrop');
   if (!backdrop) {
     backdrop = document.createElement('div');
     backdrop.className = 'sidebar-backdrop';
     document.body.appendChild(backdrop);
   }
 
-  if (toggleBtn && sidebar) {
-    toggleBtn.addEventListener('click', () => {
-      sidebar.classList.toggle('open');
-      backdrop.classList.toggle('active');
-    });
+  function openMenu() {
+    sidebar.classList.add('open');
+    backdrop.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
 
-    backdrop.addEventListener('click', () => {
-      sidebar.classList.remove('open');
-      backdrop.classList.remove('active');
+  function closeMenu() {
+    sidebar.classList.remove('open');
+    backdrop.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  // Inject mobile close button into sidebar header if not present
+  const sidebarHeader = sidebar.firstElementChild;
+  if (sidebarHeader && !sidebar.querySelector('.sidebar-close-btn')) {
+    const closeBtn = document.createElement('button');
+    closeBtn.className = 'sidebar-close-btn';
+    closeBtn.setAttribute('aria-label', 'মেনু বন্ধ করুন');
+    closeBtn.setAttribute('type', 'button');
+    closeBtn.innerHTML = '&times;';
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeMenu();
+    });
+    sidebarHeader.appendChild(closeBtn);
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (sidebar.classList.contains('open')) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
     });
   }
+
+  backdrop.addEventListener('click', closeMenu);
+
+  // Auto-close on nav link click on mobile viewports
+  sidebar.querySelectorAll('.sidebar-nav a, .nav-link').forEach(link => {
+    link.addEventListener('click', () => {
+      if (window.innerWidth <= 992) {
+        closeMenu();
+      }
+    });
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+      closeMenu();
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', () => {
