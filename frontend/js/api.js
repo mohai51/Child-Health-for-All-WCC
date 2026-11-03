@@ -203,11 +203,6 @@ async function apiFetch(endpoint, options = {}) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const activeRole = typeof localStorage !== 'undefined' ? localStorage.getItem('wcc_active_role') : null;
-  if (activeRole && !headers['x-bypass-role']) {
-    headers['x-bypass-role'] = activeRole;
-  }
-
   try {
     const response = await fetch(url, {
       credentials: 'include',

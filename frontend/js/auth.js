@@ -1,5 +1,5 @@
 /**
- * Authentication and Navigation Controller
+ * Authentication and Navigation Controller (Strict Production Auth)
  */
 
 let currentUser = null;
@@ -13,13 +13,35 @@ const ROLE_NAMES = {
 };
 
 async function checkAuth(requiredRoles = []) {
-  // Determine role from local storage or context of the page
-  const pageRole = window.location.pathname.includes('consultation') ? 'DOCTOR' :
-                   window.location.pathname.includes('registration') ? 'REGISTRATION_VOLUNTEER' : 'SUPER_ADMIN';
-
-  let activeRole = (typeof localStorage !== 'undefined' && localStorage.getItem('wcc_active_role')) || pageRole;
-
   const currentPath = window.location.pathname;
+  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('wcc_token') : null;
+
+  // If no auth token stored and not already on login page, redirect immediately
+  if (!token && !currentPath.includes('login.html')) {
+    window.location.replace('/pages/login.html');
+    return null;
+  }
+
+  try {
+    const res = await apiFetch('/api/auth/me');
+    if (res && res.success && res.data && res.data.user) {
+      currentUser = res.data.user;
+    } else {
+      throw new Error('Authentication required');
+    }
+  } catch (error) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem('wcc_token');
+      localStorage.removeItem('wcc_user');
+      localStorage.removeItem('wcc_active_role');
+    }
+    if (!currentPath.includes('login.html')) {
+      window.location.replace('/pages/login.html');
+    }
+    return null;
+  }
+
+  // Doctor role restriction: Strictly restricted to consultation & prescription
   const forbiddenForDoctor = [
     'dashboard.html',
     'doctor-dashboard.html',
@@ -31,39 +53,37 @@ async function checkAuth(requiredRoles = []) {
     'registration.html'
   ];
 
-  // If Doctor role tries to visit any prohibited page, immediately redirect to consultation
-  if (activeRole === 'DOCTOR' && forbiddenForDoctor.some(page => currentPath.includes(page))) {
+  if (currentUser.role === 'DOCTOR' && forbiddenForDoctor.some(page => currentPath.includes(page))) {
     window.location.replace('/pages/consultation.html');
     return null;
   }
 
-  // Fallback default user for instant bypass testing
-  const fallbackUser = {
-    id: activeRole === 'DOCTOR' ? '6ae6ca6b8e6f78c4505854af' : '6ae6ca6b8e6f78c4505854ae',
-    name: activeRole === 'DOCTOR' ? 'ডা. ফারহানা (চিকিৎসক)' :
-          activeRole === 'REGISTRATION_VOLUNTEER' ? 'ভলান্টিয়ার ১ (রেজিস্ট্রেশন)' :
-          'সুপার অ্যাডমিন (WCC)',
-    email: activeRole === 'DOCTOR' ? 'dr.farhana@wcc.org.bd' :
-           activeRole === 'REGISTRATION_VOLUNTEER' ? 'volunteer1@wcc.org.bd' :
-           'admin@wcc.org.bd',
-    role: activeRole,
-    accountStatus: 'ACTIVE'
-  };
+  // Volunteer role restriction: Restricted to patient registration desk
+  const forbiddenForVolunteer = [
+    'dashboard.html',
+    'doctor-dashboard.html',
+    'camps.html',
+    'camp-details.html',
+    'volunteers.html',
+    'doctors.html',
+    'reports.html',
+    'consultation.html'
+  ];
 
-  try {
-    const res = await apiFetch('/api/auth/me');
-    if (res && res.data && res.data.user) {
-      currentUser = res.data.user;
-    } else {
-      currentUser = fallbackUser;
-    }
-  } catch (error) {
-    currentUser = fallbackUser;
+  if (currentUser.role === 'REGISTRATION_VOLUNTEER' && forbiddenForVolunteer.some(page => currentPath.includes(page))) {
+    window.location.replace('/pages/registration.html');
+    return null;
   }
 
-  // Double check if resolved user is Doctor on forbidden page
-  if (currentUser && currentUser.role === 'DOCTOR' && forbiddenForDoctor.some(page => currentPath.includes(page))) {
-    window.location.replace('/pages/consultation.html');
+  // Check required roles for current page
+  if (requiredRoles.length > 0 && !requiredRoles.includes(currentUser.role)) {
+    if (currentUser.role === 'DOCTOR') {
+      window.location.replace('/pages/consultation.html');
+    } else if (currentUser.role === 'REGISTRATION_VOLUNTEER') {
+      window.location.replace('/pages/registration.html');
+    } else {
+      window.location.replace('/pages/dashboard.html');
+    }
     return null;
   }
 
@@ -74,33 +94,9 @@ async function checkAuth(requiredRoles = []) {
 
   renderUserHeader(currentUser);
   filterNavByRole(currentUser.role);
-  injectDevQuickBar(currentUser.role);
 
   return currentUser;
 }
-
-function injectDevQuickBar(currentRole) {
-  let bar = document.getElementById('dev-bypass-bar');
-  if (!bar) {
-    bar = document.createElement('div');
-    bar.id = 'dev-bypass-bar';
-    bar.style.cssText = 'position:fixed; bottom:12px; right:12px; background:rgba(15,23,42,0.92); color:white; padding:8px 12px; border-radius:24px; font-size:0.8rem; display:flex; align-items:center; gap:8px; z-index:99999; box-shadow:0 4px 14px rgba(0,0,0,0.25); border:1px solid rgba(255,255,255,0.15);';
-    bar.innerHTML = `
-      <span style="font-weight:700; color:#FCD34D;">টেস্ট মোড:</span>
-      <button onclick="switchDevRole('SUPER_ADMIN', '/pages/dashboard.html')" style="background:${currentRole === 'SUPER_ADMIN' ? 'var(--primary, #0F4C81)' : '#334155'}; color:white; border:none; padding:4px 10px; border-radius:12px; cursor:pointer; font-weight:600; font-size:0.75rem;">অ্যাডমিন</button>
-      <button onclick="switchDevRole('DOCTOR', '/pages/consultation.html')" style="background:${currentRole === 'DOCTOR' ? '#0D9488' : '#334155'}; color:white; border:none; padding:4px 10px; border-radius:12px; cursor:pointer; font-weight:600; font-size:0.75rem;">ডাক্তার</button>
-      <button onclick="switchDevRole('REGISTRATION_VOLUNTEER', '/pages/registration.html')" style="background:${currentRole === 'REGISTRATION_VOLUNTEER' ? '#1E7E34' : '#334155'}; color:white; border:none; padding:4px 10px; border-radius:12px; cursor:pointer; font-weight:600; font-size:0.75rem;">ভলান্টিয়ার</button>
-    `;
-    document.body.appendChild(bar);
-  }
-}
-
-window.switchDevRole = function(role, targetUrl) {
-  if (typeof localStorage !== 'undefined') {
-    localStorage.setItem('wcc_active_role', role);
-  }
-  window.location.href = targetUrl;
-};
 
 function renderUserHeader(user) {
   const nameEl = document.getElementById('header-user-name');

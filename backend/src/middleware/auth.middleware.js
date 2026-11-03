@@ -5,7 +5,7 @@ const logger = require('../config/logger');
 
 /**
  * Authenticate incoming request via cookie or Authorization header
- * (BYPASS MODE: In test/dev mode, automatically attaches active user so login is never blocked)
+ * Strict Production Mode: Requires a valid session token (test bypass disabled)
  */
 async function authenticate(req, res, next) {
   try {
@@ -24,29 +24,27 @@ async function authenticate(req, res, next) {
       token = req.cookies.wcc_session;
     }
 
-    let decoded = token ? verifySessionToken(token) : null;
-    let user = null;
-
-    if (decoded && decoded.userId) {
-      user = await User.findById(decoded.userId);
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'লগইন আবশ্যক। অনুগ্রহ করে লগইন করুন (Authentication required. Please log in)'
+      });
     }
 
-    // BYPASS FOR TESTING: Auto-attach user if token missing or invalid
-    if (!user) {
-      const bypassRole = req.headers['x-bypass-role'] || 'SUPER_ADMIN';
-      user = await User.findOne({ role: bypassRole, accountStatus: 'ACTIVE' });
-      if (!user) {
-        user = await User.findOne({ accountStatus: 'ACTIVE' });
-      }
-      if (!user) {
-        user = {
-          _id: '6ae6ca6b8e6f78c4505854ae',
-          name: 'সুপার অ্যাডমিন (Bypass Mode)',
-          email: 'admin@wcc.org.bd',
-          role: bypassRole,
-          accountStatus: 'ACTIVE'
-        };
-      }
+    const decoded = verifySessionToken(token);
+    if (!decoded || !decoded.userId) {
+      return res.status(401).json({
+        success: false,
+        message: 'সেশনের মেয়াদ শেষ হয়েছে। পুনরায় লগইন করুন (Session expired or invalid)'
+      });
+    }
+
+    const user = await User.findById(decoded.userId);
+    if (!user || user.accountStatus !== 'ACTIVE') {
+      return res.status(401).json({
+        success: false,
+        message: 'অ্যাকাউন্ট নিষ্ক্রিয় বা পাওয়া যায়নি (Account inactive or not found)'
+      });
     }
 
     req.user = user;
@@ -56,24 +54,16 @@ async function authenticate(req, res, next) {
       const doctor = await Doctor.findOne({ userId: user._id });
       if (doctor) {
         req.doctor = doctor;
-      } else {
-        // Fallback to first doctor if any
-        const anyDoctor = await Doctor.findOne();
-        if (anyDoctor) req.doctor = anyDoctor;
       }
     }
 
     next();
   } catch (error) {
-    logger.error({ error: error.message }, 'Authentication bypass fallback');
-    // Ensure request proceeds with fallback admin
-    req.user = {
-      _id: '6ae6ca6b8e6f78c4505854ae',
-      name: 'সুপার অ্যাডমিন (Bypass)',
-      email: 'admin@wcc.org.bd',
-      role: 'SUPER_ADMIN',
-      accountStatus: 'ACTIVE'
-    };
+    logger.error({ error: error.message }, 'Authentication error');
+    return res.status(401).json({
+      success: false,
+      message: 'লগইন যাচাইকরণ ব্যর্থ হয়েছে (Authentication verification failed)'
+    });
   }
 }
 
