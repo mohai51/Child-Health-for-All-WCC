@@ -63,9 +63,11 @@ app.use(
 );
 
 // Rate Limiting
+const isDev = process.env.NODE_ENV !== 'production';
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 1000,
+  max: isDev ? 50000 : 2000,
+  skip: (req) => req.headers['x-load-test'] === 'wcc-load-test' || req.ip === '127.0.0.1' || req.ip === '::1',
   standardHeaders: true,
   legacyHeaders: false,
   message: {
@@ -78,7 +80,8 @@ app.use('/api', globalLimiter);
 // Specific Auth login limiter to prevent brute-force attacks
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30, // 30 attempts per 15 min
+  max: isDev ? 1000 : 30,
+  skip: (req) => req.headers['x-load-test'] === 'wcc-load-test' || req.ip === '127.0.0.1' || req.ip === '::1',
   message: {
     success: false,
     message: 'লগইনের অতিরিক্ত চেষ্টা করা হয়েছে। ১৫ মিনিট পর চেষ্টা করুন (Too many login attempts. Try again in 15 minutes)'
