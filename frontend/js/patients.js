@@ -6,7 +6,7 @@
 let selectedCampId = null;
 let campsCacheMap = {};
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initPatientDesk() {
   const user = await checkAuth(['REGISTRATION_VOLUNTEER', 'SUPER_ADMIN', 'CAMP_COORDINATOR']);
   if (!user) return;
 
@@ -33,7 +33,13 @@ document.addEventListener('DOMContentLoaded', async () => {
   if (patientIdParam) {
     loadAndShowPatientSlip(patientIdParam);
   }
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initPatientDesk);
+} else {
+  initPatientDesk();
+}
 
 // Load active camps dropdown and automatically pre-fill location
 async function loadActiveCampsForRegistration() {

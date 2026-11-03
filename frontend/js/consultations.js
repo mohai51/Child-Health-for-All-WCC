@@ -17,7 +17,7 @@ let selectedPrescriptionFile = null;
 let cameraMediaStream = null;
 let currentFacingMode = 'environment'; // Back camera by default on phones
 
-document.addEventListener('DOMContentLoaded', async () => {
+async function initConsultationDesk() {
   const user = await checkAuth(['DOCTOR', 'SUPER_ADMIN']);
   if (!user) return;
 
@@ -159,7 +159,14 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
-});
+}
+
+// Safely execute initialization whether document is loading or already ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initConsultationDesk);
+} else {
+  initConsultationDesk();
+}
 
 // Load active camps
 async function loadDoctorCamps() {
@@ -238,13 +245,11 @@ async function searchPatientInCamp() {
     return;
   }
 
-  if (!activeConsultationCampId) {
-    const campSelect = document.getElementById('doctor-camp-select');
-    if (campSelect && campSelect.value) {
-      activeConsultationCampId = campSelect.value;
-    } else if (doctorAssignedCamps.length > 0) {
-      activeConsultationCampId = doctorAssignedCamps[0]._id;
-    }
+  const campSelect = document.getElementById('doctor-camp-select');
+  if (campSelect && campSelect.value) {
+    activeConsultationCampId = campSelect.value;
+  } else if (!activeConsultationCampId && doctorAssignedCamps.length > 0) {
+    activeConsultationCampId = doctorAssignedCamps[0]._id;
   }
 
   const targetCampId = activeConsultationCampId || 'active';
@@ -388,14 +393,6 @@ function renderPatientDetails(data) {
       alertBanner.style.display = 'none';
     }
   }
-
-  // Clear previous upload preview & close camera
-  stopLiveCamera();
-  clearPrescriptionPreview();
-
-  section.style.display = 'block';
-  section.scrollIntoView({ behavior: 'smooth' });
-}
 
   // Clear previous upload preview & close camera
   stopLiveCamera();
