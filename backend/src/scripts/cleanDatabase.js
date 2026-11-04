@@ -124,7 +124,18 @@ async function cleanAndSeedDatabase() {
     });
     logger.info('Created Volunteer: volunteer@wcc.org.bd');
 
-    // 5. Reset patient ID sequence counter
+    // 5. Create Measurement Officer
+    const measurePasswordHash = await hashPassword('Measure@123');
+    await User.create({
+      name: 'পরিমাপ কর্মকর্তা (Measurement Officer)',
+      email: 'm@wcc.org.bd',
+      passwordHash: measurePasswordHash,
+      role: 'MEASUREMENT_OFFICER',
+      accountStatus: 'ACTIVE'
+    });
+    logger.info('Created Measurement Officer: m@wcc.org.bd');
+
+    // 6. Reset patient ID sequence counter
     await Counter.create({
       _id: 'patientId',
       seq: 0
@@ -142,7 +153,11 @@ async function cleanAndSeedDatabase() {
     console.log('   Email:    doctor@wcc.org.bd');
     console.log('   Password: Doctor@123');
     console.log('------------------------------------------------------');
-    console.log('3. VOLUNTEER (REGISTRATION):');
+    console.log('3. MEASUREMENT CORNER:');
+    console.log('   Email:    m@wcc.org.bd');
+    console.log('   Password: Measure@123');
+    console.log('------------------------------------------------------');
+    console.log('4. VOLUNTEER (REGISTRATION):');
     console.log('   Email:    volunteer@wcc.org.bd');
     console.log('   Password: Volunteer@123');
     console.log('======================================================\n');

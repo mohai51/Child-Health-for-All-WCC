@@ -30,4 +30,32 @@ counterSchema.statics.getNextPatientId = async function () {
   return `WCC-${paddedSeq}`;
 };
 
+/**
+ * Atomically get the next sequential visit token for a specific camp
+ * Ensures 100% collision-free tokens even when multiple volunteers register simultaneously
+ */
+counterSchema.statics.getNextVisitToken = async function (campId) {
+  const counterId = `camp_${campId}_token`;
+
+  // Synchronize with existing records if counter doesn't exist yet
+  const existingCounter = await this.findById(counterId);
+  if (!existingCounter) {
+    const Visit = mongoose.model('Visit');
+    const existingCount = await Visit.countDocuments({ campId });
+    await this.findByIdAndUpdate(
+      counterId,
+      { $setOnInsert: { seq: existingCount } },
+      { upsert: true }
+    );
+  }
+
+  const counter = await this.findByIdAndUpdate(
+    counterId,
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+
+  return counter.seq;
+};
+
 module.exports = mongoose.model('Counter', counterSchema);

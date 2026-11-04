@@ -80,6 +80,25 @@ const patientSchema = new mongoose.Schema(
       type: Number,
       default: null
     },
+    bloodGroup: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    hemoglobin: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    bmi: {
+      type: Number,
+      default: null
+    },
+    bmiStatus: {
+      type: String,
+      default: '',
+      trim: true
+    },
     mainComplaint: {
       type: String,
       default: '',

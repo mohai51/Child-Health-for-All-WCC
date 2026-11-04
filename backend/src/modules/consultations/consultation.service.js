@@ -7,6 +7,7 @@ const Doctor = require('../doctors/doctor.model');
 const User = require('../users/user.model');
 const CampMember = require('../camps/campMember.model');
 const Referral = require('../referrals/referral.model');
+const Counter = require('../patients/counter.model');
 
 /**
  * Doctor searches for patient in an active camp using Patient ID (e.g. WCC-000001), short number, token, phone, or name
@@ -113,11 +114,12 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
       registeredBy = anyUser?._id;
     }
 
+    const visitToken = await Counter.getNextVisitToken(camp._id);
     visit = await Visit.create({
       campId: camp._id,
       patientId: patient._id,
       registeredBy, // MUST BE registeredBy, matching visit.model.js
-      visitToken: count + 1,
+      visitToken,
       mainComplaint: patient.mainComplaint || 'সাধারণ স্বাস্থ্য পরীক্ষা'
     });
   }
@@ -217,6 +219,8 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
       doctorName: completedConsultation.doctorId?.fullName || completedConsultation.doctorName || 'চিকিৎসক',
       doctorSpecialty: completedConsultation.doctorId?.specialty || '',
       diagnosis: completedConsultation.diagnosis,
+      bloodGroup: completedConsultation.bloodGroup || patient?.bloodGroup || '',
+      hemoglobin: completedConsultation.hemoglobin || patient?.hemoglobin || '',
       notes: completedConsultation.notes,
       referralRequired: Boolean(completedConsultation.referralRequired || referralInfo),
       referredHospital: referralInfo?.referredHospital || completedConsultation.referralNotes || '',
@@ -311,7 +315,9 @@ async function completeConsultation({
   notes = '',
   prescriptionImageAssetIds = [],
   referralRequired = false,
-  referralData = null
+  referralData = null,
+  bloodGroup = '',
+  hemoglobin = ''
 }) {
   const consultation = await Consultation.findById(consultationId);
   if (!consultation) {
@@ -330,6 +336,30 @@ async function completeConsultation({
   }
 
   consultation.diagnosis = diagnosis || 'সাধারণ স্বাস্থ্য পরীক্ষা ও প্রেসক্রিপশন';
+  
+  // Inherit or preserve blood group & hemoglobin without blanking out measurement data
+  if (bloodGroup && String(bloodGroup).trim()) {
+    consultation.bloodGroup = String(bloodGroup).trim();
+  } else if (!consultation.bloodGroup) {
+    const pt = await Patient.findById(consultation.patientId);
+    if (pt?.bloodGroup) consultation.bloodGroup = pt.bloodGroup;
+  }
+
+  if (hemoglobin && String(hemoglobin).trim()) {
+    consultation.hemoglobin = String(hemoglobin).trim();
+  } else if (!consultation.hemoglobin) {
+    const pt = await Patient.findById(consultation.patientId);
+    if (pt?.hemoglobin) consultation.hemoglobin = pt.hemoglobin;
+  }
+
+  if (!consultation.bmi) {
+    const pt = await Patient.findById(consultation.patientId);
+    if (pt?.bmi) {
+      consultation.bmi = pt.bmi;
+      consultation.bmiStatus = pt.bmiStatus;
+    }
+  }
+
   consultation.quickCategories = quickCategories || [];
   consultation.notes = notes || '';
   if (Array.isArray(prescriptionImageAssetIds) && prescriptionImageAssetIds.length > 0) {
@@ -340,6 +370,16 @@ async function completeConsultation({
   consultation.completedAt = new Date();
 
   await consultation.save();
+
+  // Also update patient if bloodGroup or hemoglobin is explicitly provided
+  if (consultation.patientId) {
+    const patientUpdates = {};
+    if (bloodGroup && String(bloodGroup).trim()) patientUpdates.bloodGroup = String(bloodGroup).trim();
+    if (hemoglobin && String(hemoglobin).trim()) patientUpdates.hemoglobin = String(hemoglobin).trim();
+    if (Object.keys(patientUpdates).length > 0) {
+      await Patient.findByIdAndUpdate(consultation.patientId, patientUpdates);
+    }
+  }
 
   // If referral is required, create Referral record
   let referral = null;

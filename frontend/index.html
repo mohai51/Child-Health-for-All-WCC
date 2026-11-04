@@ -23,6 +23,9 @@
       <a href="/pages/dashboard.html" onclick="localStorage.setItem('wcc_active_role','SUPER_ADMIN')" class="btn btn-primary btn-lg" style="text-decoration:none;">
         সুপার অ্যাডমিন ড্যাশবোর্ড (Super Admin)
       </a>
+      <a href="/pages/measurement.html" onclick="localStorage.setItem('wcc_active_role','MEASUREMENT_OFFICER')" class="btn btn-outline" style="text-decoration:none; color:#0284c7; border-color:#0284c7; font-weight:700;">
+        পরিমাপ কর্নার: উচ্চতা, ওজন ও ভাইটালস (Measurement Desk)
+      </a>
       <a href="/pages/consultation.html" onclick="localStorage.setItem('wcc_active_role','DOCTOR')" class="btn btn-secondary" style="text-decoration:none;">
         চিকিৎসক কর্নার: রোগী সার্চ ও প্রেসক্রিপশন আপলোড
       </a>
@@ -45,6 +48,7 @@
         if (res && res.data && res.data.user) {
           const role = res.data.user.role;
           if (role === 'DOCTOR') window.location.href = '/pages/consultation.html';
+          else if (role === 'MEASUREMENT_OFFICER') window.location.href = '/pages/measurement.html';
           else if (role === 'REGISTRATION_VOLUNTEER') window.location.href = '/pages/registration.html';
           else window.location.href = '/pages/dashboard.html';
         }

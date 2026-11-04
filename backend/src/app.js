@@ -21,6 +21,7 @@ const referralRoutes = require('./modules/referrals/referral.routes');
 const imageRoutes = require('./modules/images/image.routes');
 const auditRoutes = require('./modules/audit/audit.routes');
 const dashboardRoutes = require('./modules/dashboard/dashboard.routes');
+const measurementRoutes = require('./modules/measurements/measurement.routes');
 
 const app = express();
 
@@ -153,6 +154,8 @@ app.use('/api/referrals', referralRoutes);
 app.use('/api/images', imageRoutes);
 app.use('/api/audit', auditRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/measurements', measurementRoutes);
+app.use('/api/camps/:campId/measurements', measurementRoutes);
 
 // Health check endpoint with DB diagnostic status
 app.get('/api/health', async (req, res) => {

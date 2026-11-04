@@ -95,13 +95,21 @@
           </span>
         </div>
 
-        <div class="header-user-section">
+        <div class="header-user-section" style="display:flex; align-items:center; gap:10px;">
           <div class="user-badge">
             <div class="user-info-text">
               <span id="header-user-name" class="user-name">ডা. ফারহানা রহমান</span>
               <span id="header-user-role" class="user-role">চিকিৎসক (Doctor)</span>
             </div>
           </div>
+          <button type="button" id="header-logout-btn" class="btn btn-sm btn-outline logout-action-btn" title="সিস্টেম থেকে লগআউট করুন" style="color:#dc2626; border-color:#fca5a5; background:#fff; display:inline-flex; align-items:center; gap:6px; font-weight:700; padding:6px 12px; border-radius:6px; cursor:pointer;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+              <polyline points="16 17 21 12 16 7"/>
+              <line x1="21" y1="12" x2="9" y2="12"/>
+            </svg>
+            <span>লগআউট</span>
+          </button>
         </div>
       </header>
 
@@ -237,8 +245,21 @@
                   <div id="pv-guardian" style="font-size:1rem; font-weight:600; color:var(--text-main);">-</div>
                 </div>
                 <div>
-                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">শারীরিক মাপ (Vitals):</span>
-                  <div id="pv-vitals" style="font-size:1rem; font-weight:700; color:var(--primary);">-</div>
+                  <span style="font-size:0.8rem; color:var(--text-muted); font-weight:600;">শারীরিক মাপ ও ভাইটালস:</span>
+                  <div id="pv-vitals" style="font-size:0.95rem; font-weight:700; color:var(--primary);">-</div>
+                </div>
+              </div>
+
+              <!-- Measurement Corner Data & Auto-calculated BMI Strip -->
+              <div id="pv-vitals-strip" style="background:#f0f9ff; border:1px solid #bae6fd; border-radius:6px; padding:10px 14px; margin-bottom:12px; display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between;">
+                <div style="display:flex; gap:14px; flex-wrap:wrap; align-items:center; font-size:0.9rem; color:#1e293b;">
+                  <span><b>উচ্চতা:</b> <span id="pv-height" style="font-weight:700;">-</span></span>
+                  <span><b>ওজন:</b> <span id="pv-weight" style="font-weight:700;">-</span></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:0.85rem; font-weight:700; color:#0369a1;">ক্যালকুলেটেড BMI:</span>
+                  <span id="pv-bmi-val" style="font-size:1.15rem; font-weight:800; color:#0369a1; font-family:monospace;">-</span>
+                  <span id="pv-bmi-badge" class="badge-counter" style="background:#dcfce7; color:#15803d; border-color:#86efac; font-weight:700;">-</span>
                 </div>
               </div>
 
@@ -358,36 +379,11 @@
                     কোথায় রেফার করা হচ্ছে? (সরকারি হাসপাতাল নির্বাচন করুন):
                   </label>
                   <select id="referral-hospital-select" class="form-control" style="font-weight:600; font-size:0.95rem; border:2px solid #F59E0B; background:#FFFFFF;">
-                    <option value="">-- সরকারি হাসপাতাল নির্বাচন করুন --</option>
-                    <optgroup label="ঝালকাঠি ও বরিশাল বিভাগ">
-                      <option value="ঝালকাঠি সদর হাসপাতাল">ঝালকাঠি সদর হাসপাতাল (১০০ শয্যা)</option>
-                      <option value="বরিশাল শের-ই-বাংলা মেডিকেল কলেজ ও হাসপাতাল (SBMCH - শিশু বিভাগ)">বরিশাল শের-ই-বাংলা মেডিকেল কলেজ ও হাসপাতাল (SBMCH - শিশু বিভাগ)</option>
-                      <option value="ঝালকাঠি মা ও শিশু কল্যাণ কেন্দ্র (MCH)">ঝালকাঠি মা ও শিশু কল্যাণ কেন্দ্র (MCH)</option>
-                      <option value="নলছিটি উপজেলা স্বাস্থ্য কমপ্লেক্স">নলছিটি উপজেলা স্বাস্থ্য কমপ্লেক্স</option>
-                      <option value="রাজাপুর উপজেলা স্বাস্থ্য কমপ্লেক্স">রাজাপুর উপজেলা স্বাস্থ্য কমপ্লেক্স</option>
-                      <option value="কাঁঠালিয়া উপজেলা স্বাস্থ্য কমপ্লেক্স">কাঁঠালিয়া উপজেলা স্বাস্থ্য কমপ্লেক্স</option>
-                      <option value="বরিশাল জেনারেল হাসপাতাল (সদর হাসপাতাল)">বরিশাল জেনারেল হাসপাতাল (সদর হাসপাতাল)</option>
-                    </optgroup>
-                    <optgroup label="ঢাকা বিভাগ (বিশেষায়িত শিশু ও সরকারি হাসপাতাল)">
-                      <option value="বাংলাদেশ শিশু হাসপাতাল ও ইনস্টিটিউট (শের-ই-বাংলা নগর, ঢাকা)">বাংলাদেশ শিশু হাসপাতাল ও ইনস্টিটিউট (শের-ই-বাংলা নগর, ঢাকা)</option>
-                      <option value="ঢাকা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)">ঢাকা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)</option>
-                      <option value="মাতুয়াইল শিশু ও মাতৃ স্বাস্থ্য ইনস্টিটিউট (ICMH), ঢাকা">মাতুয়াইল শিশু ও মাতৃ স্বাস্থ্য ইনস্টিটিউট (ICMH), ঢাকা</option>
-                      <option value="শহীদ সোহরাওয়ার্দী মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)">শহীদ সোহরাওয়ার্দী মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)</option>
-                      <option value="স্যার সলিমুল্লাহ মেডিকেল কলেজ ও মিটফোর্ড হাসপাতাল (শিশু বিভাগ)">স্যার সলিমুল্লাহ মেডিকেল কলেজ ও মিটফোর্ড হাসপাতাল (শিশু বিভাগ)</option>
-                      <option value="মুগদা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)">মুগদা মেডিকেল কলেজ ও হাসপাতাল (শিশু বিভাগ)</option>
-                      <option value="বঙ্গবন্ধু শেখ মুজিব মেডিকেল বিশ্ববিদ্যালয় (BSMMU - শিশু বিভাগ)">বঙ্গবন্ধু শেখ মুজিব মেডিকেল বিশ্ববিদ্যালয় (BSMMU - শিশু বিভাগ)</option>
-                      <option value="জাতীয় হৃদরোগ ইনস্টিটিউট ও হাসপাতাল (পেডিয়াট্রিক কার্ডিওলজি, ঢাকা)">জাতীয় হৃদরোগ ইনস্টিটিউট ও হাসপাতাল (পেডিয়াট্রিক কার্ডিওলজি, ঢাকা)</option>
-                      <option value="জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (NIDCH - শিশু বিভাগ, ঢাকা)">জাতীয় বক্ষব্যাধি ইনস্টিটিউট ও হাসপাতাল (NIDCH - শিশু বিভাগ, ঢাকা)</option>
-                      <option value="কুর্মিটোলা জেনারেল হাসপাতাল (শিশু বিভাগ)">কুর্মিটোলা জেনারেল হাসপাতাল (শিশু বিভাগ)</option>
-                    </optgroup>
-                    <optgroup label="অন্যান্য সরকারি হাসপাতাল">
-                      <option value="অন্যান্য সরকারি হাসপাতাল">অন্যান্য সরকারি হাসপাতাল / বিশেষায়িত কেন্দ্র</option>
-                    </optgroup>
+                    <option value="">-- রেফারেল সরকারি হাসপাতাল নির্বাচন করুন --</option>
+                    <option value="Jhalokathi Sadar Hospital">Jhalokathi Sadar Hospital (ঝালকাঠি সদর হাসপাতাল)</option>
+                    <option value="Barishal Sher-E-Bangla Medical College and Hospital">Barishal Sher-E-Bangla Medical College and Hospital (বরিশাল শের-ই-বাংলা মেডিকেল কলেজ ও হাসপাতাল)</option>
+                    <option value="Bangladesh Sishu Hospital">Bangladesh Sishu Hospital (বাংলাদেশ শিশু হাসপাতাল)</option>
                   </select>
-
-                  <div id="referral-custom-box" style="display:none; margin-top:10px;">
-                    <input type="text" id="referral-custom-hospital" class="form-control" placeholder="হাসপাতালের নাম লিখুন...">
-                  </div>
 
                   <div style="margin-top:10px;">
                     <label class="form-label" for="referral-reason-input" style="font-size:0.85rem; color:#78350F; font-weight:600;">
@@ -414,9 +410,9 @@
     </div>
   </div>
 
-  <script src="/js/api.js?v=20261104_0030"></script>
-  <script src="/js/auth.js?v=20261104_0030"></script>
-  <script src="/js/consultations.js?v=20261104_0030"></script>
-  <script src="/js/footer.js?v=20261104_0030"></script>
+  <script src="/js/api.js?v=20261105_003"></script>
+  <script src="/js/auth.js?v=20261105_003"></script>
+  <script src="/js/consultations.js?v=20261105_003"></script>
+  <script src="/js/footer.js?v=20261105_003"></script>
 </body>
 </html>

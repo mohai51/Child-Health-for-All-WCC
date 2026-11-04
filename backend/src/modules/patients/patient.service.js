@@ -84,9 +84,8 @@ async function registerNewPatient({
     createdBy: registeredByUserId
   });
 
-  // Calculate visit token for this camp
-  const currentVisitsCount = await Visit.countDocuments({ campId });
-  const visitToken = currentVisitsCount + 1;
+  // Atomically calculate next visit token for this camp (thread-safe for concurrent volunteers)
+  const visitToken = await Counter.getNextVisitToken(camp._id);
 
   // Create Camp Visit record
   const visit = await Visit.create({
@@ -143,8 +142,8 @@ async function registerReturningPatient({ campId, patientRecordId, mainComplaint
     throw new Error('এই রোগী ইতিমধ্যে এই স্বাস্থ্য ক্যাম্পে নিবন্ধিত আছেন (Patient already registered in this camp)');
   }
 
-  const currentVisitsCount = await Visit.countDocuments({ campId });
-  const visitToken = currentVisitsCount + 1;
+  // Atomically calculate next visit token for this camp (thread-safe for concurrent volunteers)
+  const visitToken = await Counter.getNextVisitToken(camp._id);
 
   const visit = await Visit.create({
     patientId: patient._id,

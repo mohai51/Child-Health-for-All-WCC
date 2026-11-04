@@ -287,13 +287,16 @@
                     <th>বয়স</th>
                     <th>পিতা / অভিভাবকের নাম</th>
                     <th>ফোন নম্বর</th>
+                    <th style="text-align: center;">রক্তের গ্রুপ</th>
+                    <th style="text-align: center;">হিমোগ্লোবিন (%)</th>
+                    <th style="text-align: center;">BMI</th>
                     <th>কোন ডাক্তার দেখেছেন</th>
                     <th style="text-align: center;">রেফারেল হয়েছে কিনা</th>
                     <th>রেফারেল গন্তব্য</th>
                   </tr>
                 </thead>
                 <tbody id="r1-patients-tbody">
-                  <tr><td colspan="8" style="text-align:center; padding:20px; color:#6b7280;">তথ্য লোড হচ্ছে...</td></tr>
+                  <tr><td colspan="11" style="text-align:center; padding:20px; color:#6b7280;">তথ্য লোড হচ্ছে...</td></tr>
                 </tbody>
               </table>
             </div>
@@ -461,7 +464,7 @@
       // 1. Patients Table
       const pTbody = document.getElementById('r1-patients-tbody');
       if (patients.length === 0) {
-        pTbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:24px; color:#64748b;">এই ক্যাম্পে কোনো রোগীর তথ্য পাওয়া যায়নি।</td></tr>';
+        pTbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:24px; color:#64748b;">এই ক্যাম্পে কোনো রোগীর তথ্য পাওয়া যায়নি।</td></tr>';
       } else {
         pTbody.innerHTML = patients.map((p, idx) => `
           <tr>
@@ -470,6 +473,9 @@
             <td>${escapeHtml(p.age)}</td>
             <td>${escapeHtml(p.guardianName)}</td>
             <td>${escapeHtml(p.phone)}</td>
+            <td style="text-align:center;"><span class="badge-counter" style="font-weight:700; color:#b91c1c; border-color:#fca5a5; background:#fff1f2;">${escapeHtml(p.bloodGroup || '-')}</span></td>
+            <td style="text-align:center; font-weight:700; color:#166534;">${escapeHtml(p.hemoglobin || '-')}</td>
+            <td style="text-align:center; font-weight:700; color:#0369a1;">${p.bmi && p.bmi !== '-' ? toBanglaNumber(p.bmi) : '-'}</td>
             <td><b>${escapeHtml(p.doctorName)}</b></td>
             <td style="text-align:center;">
               <span class="${p.isReferred === 'Yes' ? 'badge-yes' : 'badge-no'}">
@@ -527,9 +533,15 @@
       if (typeof window.html2pdf === 'function') return true;
       return new Promise((resolve) => {
         const script = document.createElement('script');
-        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+        script.src = '/js/html2pdf.bundle.min.js';
         script.onload = () => resolve(typeof window.html2pdf === 'function');
-        script.onerror = () => resolve(false);
+        script.onerror = () => {
+          const cdnScript = document.createElement('script');
+          cdnScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';
+          cdnScript.onload = () => resolve(typeof window.html2pdf === 'function');
+          cdnScript.onerror = () => resolve(false);
+          document.head.appendChild(cdnScript);
+        };
         document.head.appendChild(script);
       });
     }
@@ -597,6 +609,9 @@
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px;">${escapeHtml(p.age)}</td>
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px;">${escapeHtml(p.guardianName)}</td>
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px;">${escapeHtml(p.phone)}</td>
+            <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#b91c1c;">${escapeHtml(p.bloodGroup || '-')}</td>
+            <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#166534;">${escapeHtml(p.hemoglobin || '-')}</td>
+            <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#0369a1;">${escapeHtml(p.bmi || '-')}</td>
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px; font-weight:600;">${escapeHtml(p.doctorName)}</td>
             <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:${p.isReferred === 'Yes' ? '#15803d' : '#64748b'};">
               ${p.isReferred === 'Yes' ? 'Yes' : 'No'}
@@ -662,13 +677,16 @@
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">বয়স</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">পিতা / অভিভাবক</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">ফোন</th>
+                <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">ব্লাড গ্রুপ</th>
+                <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">হিমোগ্লোবিন (%)</th>
+                <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">BMI</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">চিকিৎসক</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">রেফারেল</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">রেফারেল গন্তব্য</th>
               </tr>
             </thead>
             <tbody>
-              ${patientsRows || '<tr><td colspan="8" style="text-align:center; padding:10px;">কোনো রেকর্ড নেই</td></tr>'}
+              ${patientsRows || '<tr><td colspan="11" style="text-align:center; padding:10px;">কোনো রেকর্ড নেই</td></tr>'}
             </tbody>
           </table>
 
@@ -722,6 +740,9 @@
             <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.age)}</td>
             <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.guardianName)}</td>
             <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px;">${escapeHtml(p.phone)}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:#b91c1c;">${escapeHtml(p.bloodGroup || '-')}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:#166534;">${escapeHtml(p.hemoglobin || '-')}</td>
+            <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:#0369a1;">${escapeHtml(p.bmi || '-')}</td>
             <td style="border:1px solid #94a3b8; padding:7px 8px; font-size:11px; font-weight:600;">${escapeHtml(p.doctorName)}</td>
             <td style="border:1px solid #94a3b8; padding:7px 8px; text-align:center; font-size:11px; font-weight:700; color:${p.isReferred === 'Yes' ? '#15803d' : '#64748b'};">
               ${p.isReferred === 'Yes' ? 'Yes' : 'No'}
@@ -765,13 +786,16 @@
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">বয়স</th>
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">পিতা / অভিভাবকের নাম</th>
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">ফোন নম্বর</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">ব্লাড গ্রুপ</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">হিমোগ্লোবিন (%)</th>
+                <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">BMI</th>
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">কোন ডাক্তার দেখেছেন</th>
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:center;">রেফারেল (Yes/No)</th>
                 <th style="border:1px solid #94a3b8; padding:8px; font-size:11px; text-align:left;">রেফারেল গন্তব্য</th>
               </tr>
             </thead>
             <tbody>
-              ${patientsRows || '<tr><td colspan="8" style="text-align:center; padding:15px;">কোনো রেকর্ড নেই</td></tr>'}
+              ${patientsRows || '<tr><td colspan="11" style="text-align:center; padding:15px;">কোনো রেকর্ড নেই</td></tr>'}
             </tbody>
           </table>
 
@@ -972,38 +996,34 @@
         btn.innerHTML = '<span>⏳ পিডিএফ প্রস্তুত হচ্ছে...</span>';
       }
 
-      let printContainer = null;
       try {
         const report = await prepareReportData(reportType);
         if (!report) return;
 
-        // Try direct file download using html2pdf if available and within size limits
+        await ensureHtml2Pdf();
         const hasHtml2Pdf = typeof window.html2pdf === 'function';
-        if (hasHtml2Pdf && (reportType !== 0 && reportType !== 1 || currentCampData?.patients?.length <= 60)) {
-          showToast(`পিডিএফ "${report.filename}" তৈরি হচ্ছে...`, 'info');
-          printContainer = document.createElement('div');
-          printContainer.id = 'temp-pdf-render-box';
-          printContainer.style.position = 'absolute';
-          printContainer.style.left = '0';
-          printContainer.style.top = '0';
-          printContainer.style.zIndex = '-9999';
-          printContainer.style.width = report.orientation === 'landscape' ? '1120px' : '794px';
-          printContainer.style.background = '#ffffff';
-          printContainer.style.color = '#0f172a';
-          printContainer.style.fontFamily = "'Hind Siliguri', 'Segoe UI', Arial, sans-serif";
-          printContainer.style.padding = '24px';
-          printContainer.style.boxSizing = 'border-box';
-          printContainer.innerHTML = report.reportBodyHtml;
-          document.body.appendChild(printContainer);
+
+        if (hasHtml2Pdf) {
+          showToast(`পিডিএফ "${report.filename}" তৈরি হচ্ছে, কিছুক্ষণ অপেক্ষা করুন...`, 'info');
+
+          // Pass clean styled HTML string directly to html2pdf (avoids zero-height layout bugs caused by position:absolute / z-index:-9999)
+          const pdfContentHtml = `
+            <div style="font-family:'Hind Siliguri', 'Segoe UI', Arial, sans-serif; background:#ffffff; color:#0f172a; padding:12px 14px; box-sizing:border-box; width:100%;">
+              ${report.reportBodyHtml}
+            </div>
+          `;
 
           const opt = {
             margin: report.orientation === 'landscape' ? [6, 6, 6, 6] : [8, 8, 8, 8],
             filename: report.filename,
-            image: { type: 'jpeg', quality: 0.95 },
+            image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
-              scale: 1.5,
+              scale: 2,
               useCORS: true,
-              logging: false
+              logging: false,
+              letterRendering: true,
+              scrollX: 0,
+              scrollY: 0
             },
             jsPDF: {
               unit: 'mm',
@@ -1013,10 +1033,10 @@
             pagebreak: { mode: ['css', 'legacy'] }
           };
 
-          await html2pdf().set(opt).from(printContainer).save();
+          await html2pdf().set(opt).from(pdfContentHtml).save();
           showToast(`পিডিএফ "${report.filename}" সফলভাবে ডাউনলোড হয়েছে!`, 'success');
         } else {
-          // For high-volume data (e.g. 200+ patients) or devices, use zero-popup native Save-as-PDF pipeline
+          // Native zero-popup Save-as-PDF pipeline
           printReportDirectly(report.reportBodyHtml, report.reportTitle, report.orientation);
           showToast('পিডিএফ সংরক্ষণ উইন্ডো খোলা হয়েছে। "Save as PDF" নির্বাচন করে সংরক্ষণ করুন।', 'success');
         }
@@ -1032,9 +1052,6 @@
           showToast('পিডিএফ তৈরিতে সমস্যা: ' + err.message, 'error');
         }
       } finally {
-        if (printContainer) {
-          printContainer.remove();
-        }
         if (btn) {
           setTimeout(() => {
             btn.disabled = false;

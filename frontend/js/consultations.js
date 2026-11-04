@@ -74,28 +74,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   const refYes = document.getElementById('referral-yes');
   const refContainer = document.getElementById('referral-destination-container');
   const refSelect = document.getElementById('referral-hospital-select');
-  const refCustomBox = document.getElementById('referral-custom-box');
 
   if (refNo && refYes && refContainer) {
     refNo.addEventListener('change', () => {
       refContainer.style.display = 'none';
       if (refSelect) refSelect.value = '';
-      if (refCustomBox) refCustomBox.style.display = 'none';
     });
     refYes.addEventListener('change', () => {
       refContainer.style.display = 'block';
       if (refSelect) refSelect.focus();
-    });
-  }
-
-  if (refSelect && refCustomBox) {
-    refSelect.addEventListener('change', () => {
-      if (refSelect.value === 'অন্যান্য সরকারি হাসপাতাল') {
-        refCustomBox.style.display = 'block';
-        document.getElementById('referral-custom-hospital')?.focus();
-      } else {
-        refCustomBox.style.display = 'none';
-      }
     });
   }
 
@@ -300,7 +287,62 @@ function renderPatientDetails(data) {
   document.getElementById('pv-age-sex').innerText = `${toBanglaNumber(p.ageYears || 0)} বছর ${p.ageMonths ? `${toBanglaNumber(p.ageMonths)} মাস, ` : ''}${p.sex === 'MALE' ? 'ছেলে' : p.sex === 'FEMALE' ? 'মেয়ে' : 'অন্যান্য'}`;
   document.getElementById('pv-guardian').innerText = `${p.guardianName || '-'} (${p.guardianPhone || 'ফোন নম্বর নেই'})`;
   document.getElementById('pv-complaint').innerText = v?.mainComplaint || p.mainComplaint || 'সাধারণ স্বাস্থ্য পরীক্ষা';
-  document.getElementById('pv-vitals').innerText = `ওজন: ${p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'N/A'}, উচ্চতা: ${p.height ? `${toBanglaNumber(p.height)} সেমি` : 'N/A'}`;
+
+  // Calculate pediatric BMI based on weight and height
+  const w = parseFloat(p.weight);
+  const h = parseFloat(p.height);
+  let bmiVal = p.bmi || null;
+  let bmiStatusText = p.bmiStatus || '';
+  let badgeColor = '#15803d';
+  let badgeBg = '#dcfce7';
+  let badgeBorder = '#86efac';
+
+  if (!bmiVal && w > 0 && h > 0) {
+    const heightM = h / 100;
+    bmiVal = parseFloat((w / (heightM * heightM)).toFixed(1));
+    const age = parseInt(p.ageYears || 5, 10);
+    if (age <= 5) {
+      if (bmiVal < 13.5) { bmiStatusText = 'কম ওজন / অপুষ্টি'; badgeColor = '#b91c1c'; badgeBg = '#fee2e2'; badgeBorder = '#fca5a5'; }
+      else if (bmiVal <= 17.5) { bmiStatusText = 'স্বাভাবিক ওজন'; badgeColor = '#15803d'; badgeBg = '#dcfce7'; badgeBorder = '#86efac'; }
+      else if (bmiVal <= 19.0) { bmiStatusText = 'অতিরিক্ত ওজন'; badgeColor = '#b45309'; badgeBg = '#fef3c7'; badgeBorder = '#fcd34d'; }
+      else { bmiStatusText = 'স্থূলতা'; badgeColor = '#9f1239'; badgeBg = '#ffe4e6'; badgeBorder = '#fda4af'; }
+    } else if (age <= 10) {
+      if (bmiVal < 14.0) { bmiStatusText = 'কম ওজন'; badgeColor = '#b91c1c'; badgeBg = '#fee2e2'; badgeBorder = '#fca5a5'; }
+      else if (bmiVal <= 19.5) { bmiStatusText = 'স্বাভাবিক ওজন'; badgeColor = '#15803d'; badgeBg = '#dcfce7'; badgeBorder = '#86efac'; }
+      else if (bmiVal <= 22.0) { bmiStatusText = 'অতিরিক্ত ওজন'; badgeColor = '#b45309'; badgeBg = '#fef3c7'; badgeBorder = '#fcd34d'; }
+      else { bmiStatusText = 'স্থূলতা'; badgeColor = '#9f1239'; badgeBg = '#ffe4e6'; badgeBorder = '#fda4af'; }
+    } else if (age <= 14) {
+      if (bmiVal < 15.5) { bmiStatusText = 'কম ওজন'; badgeColor = '#b91c1c'; badgeBg = '#fee2e2'; badgeBorder = '#fca5a5'; }
+      else if (bmiVal <= 22.5) { bmiStatusText = 'স্বাভাবিক ওজন'; badgeColor = '#15803d'; badgeBg = '#dcfce7'; badgeBorder = '#86efac'; }
+      else if (bmiVal <= 26.0) { bmiStatusText = 'অতিরিক্ত ওজন'; badgeColor = '#b45309'; badgeBg = '#fef3c7'; badgeBorder = '#fcd34d'; }
+      else { bmiStatusText = 'স্থূলতা'; badgeColor = '#9f1239'; badgeBg = '#ffe4e6'; badgeBorder = '#fda4af'; }
+    } else {
+      if (bmiVal < 18.5) { bmiStatusText = 'কম ওজন'; badgeColor = '#b91c1c'; badgeBg = '#fee2e2'; badgeBorder = '#fca5a5'; }
+      else if (bmiVal <= 24.9) { bmiStatusText = 'স্বাভাবিক ওজন'; badgeColor = '#15803d'; badgeBg = '#dcfce7'; badgeBorder = '#86efac'; }
+      else if (bmiVal <= 29.9) { bmiStatusText = 'অতিরিক্ত ওজন'; badgeColor = '#b45309'; badgeBg = '#fef3c7'; badgeBorder = '#fcd34d'; }
+      else { bmiStatusText = 'স্থূলতা'; badgeColor = '#9f1239'; badgeBg = '#ffe4e6'; badgeBorder = '#fda4af'; }
+    }
+  }
+
+  let vitalsText = `ওজন: ${p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'N/A'}, উচ্চতা: ${p.height ? `${toBanglaNumber(p.height)} সেমি` : 'N/A'}`;
+  if (bmiVal) vitalsText += ` | BMI: ${toBanglaNumber(bmiVal)} kg/m² (${bmiStatusText})`;
+  document.getElementById('pv-vitals').innerText = vitalsText;
+
+  // Update dedicated strip elements
+  const heightEl = document.getElementById('pv-height');
+  const weightEl = document.getElementById('pv-weight');
+  const bmiValEl = document.getElementById('pv-bmi-val');
+  const bmiBadgeEl = document.getElementById('pv-bmi-badge');
+
+  if (heightEl) heightEl.innerText = p.height ? `${toBanglaNumber(p.height)} সেমি` : 'নেই';
+  if (weightEl) weightEl.innerText = p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'নেই';
+  if (bmiValEl) bmiValEl.innerText = bmiVal ? `${toBanglaNumber(bmiVal)}` : '-';
+  if (bmiBadgeEl) {
+    bmiBadgeEl.innerText = bmiStatusText || (p.weight && p.height ? 'ক্যালকুলেটেড' : 'পরিমাপ নেই');
+    bmiBadgeEl.style.color = badgeColor;
+    bmiBadgeEl.style.background = badgeBg;
+    bmiBadgeEl.style.borderColor = badgeBorder;
+  }
 
   // Check if patient was already examined
   const alertBanner = document.getElementById('already-consulted-alert-banner');
@@ -676,17 +718,12 @@ async function handleSaveConsultation() {
 
   if (isReferralYes) {
     const refSelect = document.getElementById('referral-hospital-select');
-    const customInput = document.getElementById('referral-custom-hospital');
     const reasonInput = document.getElementById('referral-reason-input');
 
-    if (refSelect && refSelect.value === 'অন্যান্য সরকারি হাসপাতাল') {
-      referredHospital = customInput ? customInput.value.trim() : '';
-    } else if (refSelect) {
-      referredHospital = refSelect.value.trim();
-    }
+    referredHospital = refSelect ? refSelect.value.trim() : '';
 
     if (!referredHospital) {
-      showToast('অনুগ্রহ করে রেফারেল সরকারি হাসপাতাল নির্বাচন অথবা নাম উল্লেখ করুন', 'error');
+      showToast('অনুগ্রহ করে রেফারেল সরকারি হাসপাতাল নির্বাচন করুন', 'error');
       refSelect?.focus();
       return;
     }
@@ -773,16 +810,12 @@ function clearPrescriptionPreview() {
   const refYes = document.getElementById('referral-yes');
   const refContainer = document.getElementById('referral-destination-container');
   const refSelect = document.getElementById('referral-hospital-select');
-  const refCustomBox = document.getElementById('referral-custom-box');
-  const customInput = document.getElementById('referral-custom-hospital');
   const reasonInput = document.getElementById('referral-reason-input');
 
   if (refNo) refNo.checked = true;
   if (refYes) refYes.checked = false;
   if (refContainer) refContainer.style.display = 'none';
   if (refSelect) refSelect.value = '';
-  if (refCustomBox) refCustomBox.style.display = 'none';
-  if (customInput) customInput.value = '';
   if (reasonInput) reasonInput.value = '';
 }
 

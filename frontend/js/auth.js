@@ -9,7 +9,8 @@ const ROLE_NAMES = {
   SUPER_ADMIN: 'সুপার অ্যাডমিন (Super Admin)',
   DOCTOR: 'চিকিৎসক (Doctor)',
   REGISTRATION_VOLUNTEER: 'রেজিস্ট্রেশন ভলান্টিয়ার',
-  CAMP_COORDINATOR: 'ক্যাম্প সমন্বয়ক'
+  CAMP_COORDINATOR: 'ক্যাম্প সমন্বয়ক',
+  MEASUREMENT_OFFICER: 'পরিমাপ কর্মকর্তা (Measurement Officer)'
 };
 
 async function checkAuth(requiredRoles = []) {
@@ -75,12 +76,32 @@ async function checkAuth(requiredRoles = []) {
     return null;
   }
 
+  // Measurement Officer role restriction: Restricted to measurement & vitals corner
+  const forbiddenForMeasurement = [
+    'dashboard.html',
+    'doctor-dashboard.html',
+    'camps.html',
+    'camp-details.html',
+    'volunteers.html',
+    'doctors.html',
+    'reports.html',
+    'consultation.html',
+    'registration.html'
+  ];
+
+  if (currentUser.role === 'MEASUREMENT_OFFICER' && forbiddenForMeasurement.some(page => currentPath.includes(page))) {
+    window.location.replace('/pages/measurement.html');
+    return null;
+  }
+
   // Check required roles for current page
   if (requiredRoles.length > 0 && !requiredRoles.includes(currentUser.role)) {
     if (currentUser.role === 'DOCTOR') {
       window.location.replace('/pages/consultation.html');
     } else if (currentUser.role === 'REGISTRATION_VOLUNTEER') {
       window.location.replace('/pages/registration.html');
+    } else if (currentUser.role === 'MEASUREMENT_OFFICER') {
+      window.location.replace('/pages/measurement.html');
     } else {
       window.location.replace('/pages/dashboard.html');
     }
@@ -109,18 +130,21 @@ function filterNavByRole(role) {
   const adminOnlyElements = document.querySelectorAll('.nav-admin-only');
   const doctorOnlyElements = document.querySelectorAll('.nav-doctor-only');
   const volunteerOnlyElements = document.querySelectorAll('.nav-volunteer-only');
+  const measurementOnlyElements = document.querySelectorAll('.nav-measurement-only');
 
   if (role === 'SUPER_ADMIN') {
-    // Admin panel: only administrative controls; doctor corner and registration desk are omitted
+    // Admin panel: administrative controls; doctor, volunteer, measurement corners can be opened
     adminOnlyElements.forEach(el => el.style.display = 'flex');
     doctorOnlyElements.forEach(el => el.style.display = 'none');
     volunteerOnlyElements.forEach(el => el.style.display = 'none');
+    measurementOnlyElements.forEach(el => el.style.display = 'none');
   } else if (role === 'DOCTOR') {
     // DOCTOR IS STRICTLY CONFINED TO PATIENT SEARCH & PRESCRIPTION UPLOAD
     // Hide all admin, camp, volunteer, and report elements
     adminOnlyElements.forEach(el => el.style.display = 'none');
     doctorOnlyElements.forEach(el => el.style.display = 'flex');
     volunteerOnlyElements.forEach(el => el.style.display = 'none');
+    measurementOnlyElements.forEach(el => el.style.display = 'none');
 
     // If doctor tries to view dashboard, health camps, volunteers, or reports, redirect to consultation
     const currentPath = window.location.pathname;
@@ -132,33 +156,57 @@ function filterNavByRole(role) {
       'volunteers.html',
       'doctors.html',
       'reports.html',
-      'registration.html'
+      'registration.html',
+      'measurement.html'
     ];
     if (forbiddenForDoctor.some(page => currentPath.includes(page))) {
       window.location.replace('/pages/consultation.html');
       return;
     }
+  } else if (role === 'MEASUREMENT_OFFICER') {
+    // MEASUREMENT OFFICER IS STRICTLY CONFINED TO MEASUREMENT DESK
+    adminOnlyElements.forEach(el => el.style.display = 'none');
+    doctorOnlyElements.forEach(el => el.style.display = 'none');
+    volunteerOnlyElements.forEach(el => el.style.display = 'none');
+    measurementOnlyElements.forEach(el => el.style.display = 'flex');
   } else if (role === 'REGISTRATION_VOLUNTEER' || role === 'CAMP_COORDINATOR') {
     adminOnlyElements.forEach(el => el.style.display = 'none');
     doctorOnlyElements.forEach(el => el.style.display = 'none');
     volunteerOnlyElements.forEach(el => el.style.display = 'flex');
+    measurementOnlyElements.forEach(el => el.style.display = 'none');
   }
 }
 
 async function logout() {
   try {
-    await apiFetch('/api/auth/logout', { method: 'POST' });
+    if (typeof apiFetch === 'function') {
+      await apiFetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+    }
   } catch (error) {
     // Ignore error on logout
   } finally {
-    if (typeof localStorage !== 'undefined') {
-      localStorage.removeItem('wcc_token');
-      localStorage.removeItem('wcc_user');
+    try {
+      if (typeof localStorage !== 'undefined') {
+        localStorage.removeItem('wcc_token');
+        localStorage.removeItem('wcc_user');
+        localStorage.removeItem('wcc_active_role');
+      }
+      if (typeof sessionStorage !== 'undefined') {
+        sessionStorage.clear();
+      }
+      // Expire cookies client-side
+      document.cookie = 'wcc_session=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;';
+      document.cookie = 'wcc_csrf=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT; Max-Age=0;';
+    } catch (e) {
+      console.warn('Storage cleanup error', e);
     }
-    showToast('লগআউট সম্পন্ন হয়েছে', 'info');
+
+    if (typeof showToast === 'function') {
+      showToast('লগআউট সম্পন্ন হয়েছে', 'info');
+    }
     setTimeout(() => {
-      window.location.href = '/pages/login.html';
-    }, 400);
+      window.location.replace('/pages/login.html');
+    }, 250);
   }
 }
 
@@ -167,6 +215,11 @@ function initMobileMenu() {
   const toggleBtn = document.querySelector('.mobile-menu-toggle');
   const sidebar = document.querySelector('.sidebar');
   if (!sidebar) return;
+
+  if (sidebar.dataset.mobileMenuInitialized === 'true') {
+    return;
+  }
+  sidebar.dataset.mobileMenuInitialized = 'true';
 
   let backdrop = document.querySelector('.sidebar-backdrop');
   if (!backdrop) {
@@ -234,13 +287,13 @@ function initMobileMenu() {
 
 function bootstrapAuthUI() {
   initMobileMenu();
-  const logoutBtn = document.getElementById('logout-btn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', (e) => {
-      e.preventDefault();
+  const logoutButtons = document.querySelectorAll('#logout-btn, #header-logout-btn, .logout-action-btn, .logout-btn');
+  logoutButtons.forEach(btn => {
+    btn.onclick = (e) => {
+      if (e) e.preventDefault();
       logout();
-    });
-  }
+    };
+  });
 }
 
 if (document.readyState === 'loading') {

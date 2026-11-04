@@ -85,7 +85,9 @@ async function saveConsultation(req, res) {
       notes,
       prescriptionImageAssetIds,
       referralRequired,
-      referralData
+      referralData,
+      bloodGroup,
+      hemoglobin
     } = req.body;
 
     const result = await completeConsultation({
@@ -96,7 +98,9 @@ async function saveConsultation(req, res) {
       notes,
       prescriptionImageAssetIds,
       referralRequired,
-      referralData
+      referralData,
+      bloodGroup,
+      hemoglobin
     });
 
     await logAuditEvent({

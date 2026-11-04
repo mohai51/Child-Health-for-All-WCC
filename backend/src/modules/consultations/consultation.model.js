@@ -40,6 +40,25 @@ const consultationSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    bloodGroup: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    hemoglobin: {
+      type: String,
+      default: '',
+      trim: true
+    },
+    bmi: {
+      type: Number,
+      default: null
+    },
+    bmiStatus: {
+      type: String,
+      default: '',
+      trim: true
+    },
     quickCategories: {
       type: [String],
       default: []

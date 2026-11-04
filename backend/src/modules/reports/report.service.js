@@ -239,6 +239,15 @@ async function getCampReportData(campId) {
         ageDisplay = 'N/A';
       }
 
+      const rawBloodGroup = c?.bloodGroup || p.bloodGroup || '';
+      const bloodGroup = rawBloodGroup ? rawBloodGroup : '-';
+
+      const rawHb = c?.hemoglobin || p.hemoglobin || '';
+      const hemoglobin = rawHb ? (String(rawHb).includes('%') ? rawHb : `${rawHb}%`) : '-';
+
+      const rawBmi = p.bmi || c?.bmi || (p.weight && p.height ? parseFloat((p.weight / Math.pow(p.height / 100, 2)).toFixed(1)) : null);
+      const bmi = rawBmi ? `${rawBmi}` : '-';
+
       return {
         sl: idx + 1,
         patientCode: p.patientId || `T-${v.visitToken}`,
@@ -246,6 +255,11 @@ async function getCampReportData(campId) {
         age: ageDisplay,
         guardianName: p.guardianName || 'N/A',
         phone: p.guardianPhone || 'N/A',
+        height: p.height || '-',
+        weight: p.weight || '-',
+        bmi,
+        bloodGroup,
+        hemoglobin,
         doctorName: c ? (c.doctorName || c.doctorId?.fullName || 'ডা. কনসালট্যান্ট') : 'অপেক্ষমাণ / দেখা হয়নি',
         isReferred: isReferred ? 'Yes' : 'No',
         referredTo: isReferred ? referredTo : '-'
@@ -266,6 +280,15 @@ async function getCampReportData(campId) {
         ageDisplay = 'N/A';
       }
 
+      const rawBloodGroup = c.bloodGroup || p.bloodGroup || '';
+      const bloodGroup = rawBloodGroup ? rawBloodGroup : '-';
+
+      const rawHb = c.hemoglobin || p.hemoglobin || '';
+      const hemoglobin = rawHb ? (String(rawHb).includes('%') ? rawHb : `${rawHb}%`) : '-';
+
+      const rawBmi = p.bmi || c.bmi || (p.weight && p.height ? parseFloat((p.weight / Math.pow(p.height / 100, 2)).toFixed(1)) : null);
+      const bmi = rawBmi ? `${rawBmi}` : '-';
+
       return {
         sl: idx + 1,
         patientCode: p.patientId || `P-${idx + 1}`,
@@ -273,6 +296,11 @@ async function getCampReportData(campId) {
         age: ageDisplay,
         guardianName: p.guardianName || 'N/A',
         phone: p.guardianPhone || 'N/A',
+        height: p.height || '-',
+        weight: p.weight || '-',
+        bmi,
+        bloodGroup,
+        hemoglobin,
         doctorName: c.doctorName || c.doctorId?.fullName || 'ডা. কনসালট্যান্ট',
         isReferred: isReferred ? 'Yes' : 'No',
         referredTo: isReferred ? referredTo : '-'
