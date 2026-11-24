@@ -38,7 +38,7 @@ async function cleanAndSeedDatabase() {
     logger.info('All collections cleared successfully.');
 
     // 1. Create Super Admin User
-    const adminPasswordHash = await hashPassword('AdminPassword@123');
+    const adminPasswordHash = await hashPassword('Admin@123');
     const superAdmin = await User.create({
       name: 'সুপার অ্যাডমিন (Super Admin)',
       email: 'admin@wcc.org.bd',
