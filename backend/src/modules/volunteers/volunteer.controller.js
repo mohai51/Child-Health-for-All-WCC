@@ -5,10 +5,38 @@ const Visit = require('../visits/visit.model');
 const { hashPassword } = require('../../utils/security');
 const { logAuditEvent } = require('../../services/audit.service');
 
-// Get all volunteers (High-performance batch aggregation)
+// Get all volunteers (Filtered per health camp or all camps, high-performance batch aggregation)
 async function getVolunteers(req, res) {
   try {
-    const volunteers = await Volunteer.find()
+    const { campId } = req.query;
+    const mongoose = require('mongoose');
+
+    let filter = {};
+    let selectedCamp = null;
+
+    if (campId && campId !== 'all') {
+      if (mongoose.Types.ObjectId.isValid(campId)) {
+        const campObjId = new mongoose.Types.ObjectId(campId);
+        const Camp = require('../camps/camp.model');
+        selectedCamp = await Camp.findById(campObjId).select('name campCode district upazila status date venue').lean();
+
+        const campMembers = await CampMember.find({ campId: campObjId }).lean();
+        const memberVolIds = campMembers.map(cm => cm.volunteerId).filter(Boolean);
+        const memberUserIds = campMembers.map(cm => cm.userId).filter(Boolean);
+
+        filter = {
+          $or: [
+            { assignedCampId: campObjId },
+            { _id: { $in: memberVolIds } },
+            ...(memberUserIds.length > 0 ? [{ userId: { $in: memberUserIds } }] : [])
+          ]
+        };
+      } else {
+        filter = { assignedCampId: campId };
+      }
+    }
+
+    const volunteers = await Volunteer.find(filter)
       .populate('userId', 'email role accountStatus')
       .populate('profileImageAssetId')
       .populate('assignedCampId', 'name campCode district upazila status date venue')
@@ -16,7 +44,12 @@ async function getVolunteers(req, res) {
       .lean();
 
     if (volunteers.length === 0) {
-      return res.json({ success: true, data: [] });
+      return res.json({
+        success: true,
+        data: [],
+        camp: selectedCamp,
+        selectedCampId: campId || null
+      });
     }
 
     const volunteerIds = volunteers.map(v => v._id);
@@ -93,7 +126,9 @@ async function getVolunteers(req, res) {
 
     return res.json({
       success: true,
-      data: volunteersWithStats
+      data: volunteersWithStats,
+      camp: selectedCamp,
+      selectedCampId: campId || null
     });
   } catch (error) {
     return res.status(500).json({
@@ -118,7 +153,7 @@ async function createVolunteer(req, res) {
       assignedCampId
     } = req.body;
 
-    // Sanitize assignedCampId
+    // Sanitize assignedCampId - Mandatory: each volunteer belongs to a specific camp
     let cleanAssignedCampId = null;
     if (assignedCampId && typeof assignedCampId === 'string') {
       const trimmed = assignedCampId.trim();
@@ -127,16 +162,21 @@ async function createVolunteer(req, res) {
       }
     }
 
-    if (cleanAssignedCampId) {
-      const mongoose = require('mongoose');
-      if (!mongoose.Types.ObjectId.isValid(cleanAssignedCampId)) {
-        return res.status(400).json({ success: false, message: 'ক্যাম্প আইডি সঠিক নয়' });
-      }
-      const Camp = require('../camps/camp.model');
-      const targetCamp = await Camp.findById(cleanAssignedCampId);
-      if (!targetCamp) {
-        return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
-      }
+    if (!cleanAssignedCampId) {
+      return res.status(400).json({
+        success: false,
+        message: 'স্বেচ্ছাসেবকের জন্য একটি স্বাস্থ্য ক্যাম্প নির্বাচন করা বাধ্যতামূলক (Health camp is required for each volunteer)'
+      });
+    }
+
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(cleanAssignedCampId)) {
+      return res.status(400).json({ success: false, message: 'ক্যাম্প আইডি সঠিক নয়' });
+    }
+    const Camp = require('../camps/camp.model');
+    const targetCamp = await Camp.findById(cleanAssignedCampId);
+    if (!targetCamp) {
+      return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
     }
 
     let createdUser = null;
@@ -231,39 +271,44 @@ async function updateVolunteer(req, res) {
     if (profileImageAssetId !== undefined) volunteer.profileImageAssetId = profileImageAssetId || null;
 
     if (assignedCampId !== undefined) {
-      if (assignedCampId) {
-        const Camp = require('../camps/camp.model');
-        const targetCamp = await Camp.findById(assignedCampId);
-        if (!targetCamp) {
-          return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
+      let cleanAssignedCampId = null;
+      if (assignedCampId && typeof assignedCampId === 'string') {
+        const trimmed = assignedCampId.trim();
+        if (trimmed !== '' && trimmed !== 'null' && trimmed !== 'undefined') {
+          cleanAssignedCampId = trimmed;
         }
-        volunteer.assignedCampId = assignedCampId;
-        const volFilter = {
-          $or: [
-            { volunteerId: volunteer._id },
-            ...(volunteer.userId ? [{ userId: volunteer.userId }] : [])
-          ]
-        };
-        await CampMember.findOneAndUpdate(
-          volFilter,
-          {
-            campId: assignedCampId,
-            volunteerId: volunteer._id,
-            userId: volunteer.userId || null,
-            campRole: (responsibility || volunteer.responsibility) === 'Coordination' ? 'COORDINATOR' : 'VOLUNTEER',
-            assignedAt: new Date()
-          },
-          { upsert: true, new: true }
-        );
-      } else {
-        volunteer.assignedCampId = null;
-        await CampMember.deleteMany({
-          $or: [
-            { volunteerId: volunteer._id },
-            ...(volunteer.userId ? [{ userId: volunteer.userId }] : [])
-          ]
+      }
+
+      if (!cleanAssignedCampId) {
+        return res.status(400).json({
+          success: false,
+          message: 'প্রতিটি স্বেচ্ছাসেবকের জন্য একটি নির্দিষ্ট স্বাস্থ্য ক্যাম্প থাকা বাধ্যতামূলক (Health camp is required)'
         });
       }
+
+      const Camp = require('../camps/camp.model');
+      const targetCamp = await Camp.findById(cleanAssignedCampId);
+      if (!targetCamp) {
+        return res.status(404).json({ success: false, message: 'ক্যাম্প খুঁজে পাওয়া যায়নি' });
+      }
+      volunteer.assignedCampId = cleanAssignedCampId;
+      const volFilter = {
+        $or: [
+          { volunteerId: volunteer._id },
+          ...(volunteer.userId ? [{ userId: volunteer.userId }] : [])
+        ]
+      };
+      await CampMember.findOneAndUpdate(
+        volFilter,
+        {
+          campId: cleanAssignedCampId,
+          volunteerId: volunteer._id,
+          userId: volunteer.userId || null,
+          campRole: (responsibility || volunteer.responsibility) === 'Coordination' ? 'COORDINATOR' : 'VOLUNTEER',
+          assignedAt: new Date()
+        },
+        { upsert: true, new: true }
+      );
     }
 
     if (accountStatus && req.user && req.user.role === 'SUPER_ADMIN') {

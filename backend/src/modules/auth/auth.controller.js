@@ -53,7 +53,9 @@ async function getMe(req, res) {
   if (user.role === 'DOCTOR') {
     doctor = await Doctor.findOne({ userId: user._id }).populate('profileImageAssetId');
   } else if (user.role === 'REGISTRATION_VOLUNTEER' || user.role === 'CAMP_COORDINATOR') {
-    volunteer = await Volunteer.findOne({ userId: user._id }).populate('profileImageAssetId');
+    volunteer = await Volunteer.findOne({ userId: user._id })
+      .populate('profileImageAssetId')
+      .populate('assignedCampId', 'name campCode district upazila status date venue');
   }
 
   return res.json({

@@ -67,10 +67,10 @@ async function loadActiveCampsForRegistration() {
       campsCacheMap[c._id] = c;
     });
 
-    // Determine best default camp: previously stored camp in localStorage, user assigned camp, first active camp, or first camp
+    // Determine best default camp: volunteer assigned camp (locked for volunteer), previously stored camp in localStorage, first active camp, or first camp
     const savedCampId = localStorage.getItem('wcc_active_registration_camp');
-    const userAssignedCamp = window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
-    const userCampId = userAssignedCamp?._id || userAssignedCamp || null;
+    const userVolunteerCamp = window.currentUser?.volunteer?.assignedCampId || window.currentUser?.assignedCampId || window.currentUser?.assignedCamp;
+    const userCampId = userVolunteerCamp?._id || userVolunteerCamp || null;
 
     let preferredCampId = null;
     if (userCampId && campsCacheMap[userCampId]) {
@@ -80,6 +80,18 @@ async function loadActiveCampsForRegistration() {
     } else {
       const firstActive = camps.find(c => c.status === 'ACTIVE');
       preferredCampId = String(firstActive ? firstActive._id : camps[0]._id);
+    }
+
+    // For registration volunteers with an assigned camp, strictly lock to their assigned camp
+    if (window.currentUser?.role === 'REGISTRATION_VOLUNTEER' && userCampId && campsCacheMap[userCampId]) {
+      const targetCamp = campsCacheMap[userCampId];
+      const pourashavaStr = targetCamp.isPourashava && targetCamp.pourashavaName ? ` [${targetCamp.pourashavaName}]` : '';
+      select.innerHTML = `<option value="${targetCamp._id}" selected>● [আমার নির্ধারিত ক্যাম্প] ${targetCamp.name} (${targetCamp.campCode} - ${targetCamp.venue}${pourashavaStr})</option>`;
+      select.disabled = true;
+      selectedCampId = String(targetCamp._id);
+      localStorage.setItem('wcc_active_registration_camp', selectedCampId);
+      applyCampLocation(targetCamp);
+      return;
     }
 
     select.innerHTML = camps.map(c => {

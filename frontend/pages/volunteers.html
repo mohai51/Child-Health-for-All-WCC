@@ -89,14 +89,50 @@
       <main class="page-container">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
           <div>
-            <h1 style="font-size:1.6rem; color:var(--text-main);">স্বেচ্ছাসেবক তালিকা (Volunteer Team)</h1>
-            <p style="color:var(--text-muted); font-size:0.95rem;">রেজিস্ট্রেশন ডেস্ক, ফার্মেসি, সমন্বয় ও সাধারণ সহায়তায় দায়িত্ব পালনকারী স্বেচ্ছাসেবকগণ</p>
+            <h1 style="font-size:1.6rem; color:var(--text-main);">স্বেচ্ছাসেবক ব্যবস্থাপনা (Volunteer Management)</h1>
+            <p style="color:var(--text-muted); font-size:0.95rem;">প্রতিটি স্বাস্থ্য ক্যাম্পের জন্য আলাদা আলাদা স্বেচ্ছাসেবক দল ও দায়িত্ব বণ্টন</p>
           </div>
           <div>
-            <button id="open-add-volunteer-btn" onclick="openModal('add-volunteer-modal')" class="btn btn-primary">
+            <button id="open-add-volunteer-btn" class="btn btn-primary">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               নতুন স্বেচ্ছাসেবক যুক্ত করুন
             </button>
+          </div>
+        </div>
+
+        <!-- Camp Selection & Stats Header Bar -->
+        <div class="card" style="margin-bottom:20px; border-top: 4px solid var(--primary); background: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+          <div class="card-body" style="padding: 18px 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+              <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; flex:1; min-width:300px;">
+                <label for="filter-camp-select" style="font-weight:700; color:var(--text-main); font-size:0.98rem; display:flex; align-items:center; gap:8px;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                  <span>স্বাস্থ্য ক্যাম্প নির্বাচন:</span>
+                </label>
+                <select id="filter-camp-select" class="form-control" style="max-width:440px; font-weight:600; padding:10px 14px; font-size:0.95rem; border-color:var(--primary); cursor:pointer;">
+                  <option value="">ক্যাম্প তালিকা লোড হচ্ছে...</option>
+                </select>
+              </div>
+
+              <!-- Camp Stats Badges -->
+              <div id="camp-stats-badges" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+                <span class="status-badge active" style="font-size:0.88rem; padding:6px 12px;">
+                  মোট স্বেচ্ছাসেবক: <b id="stat-total-vol">০</b> জন
+                </span>
+                <span class="status-badge" style="background:#e0f2fe; color:#0369a1; font-size:0.88rem; padding:6px 12px;">
+                  রেজিস্ট্রেশন ডেস্ক: <b id="stat-reg-vol">০</b>
+                </span>
+                <span class="status-badge" style="background:#fef3c7; color:#92400e; font-size:0.88rem; padding:6px 12px;">
+                  সমন্বয়ক: <b id="stat-coord-vol">০</b>
+                </span>
+              </div>
+            </div>
+
+            <div id="selected-camp-info-banner" style="margin-top:14px; padding:10px 14px; background:#f8fafc; border-radius:6px; font-size:0.88rem; color:var(--text-muted); display:flex; align-items:center; gap:16px; flex-wrap:wrap; border:1px solid var(--border-color);">
+              <span id="banner-camp-name"><b>ক্যাম্প:</b> লোড হচ্ছে...</span>
+              <span id="banner-camp-venue"><b>স্থান:</b> -</span>
+              <span id="banner-camp-status"><b>স্ট্যাটাস:</b> -</span>
+            </div>
           </div>
         </div>
 
@@ -176,11 +212,11 @@
           </div>
 
           <div class="form-group" style="margin-top:12px;">
-            <label class="form-label">স্বাস্থ্য ক্যাম্প নির্বাচন করুন (শুধুমাত্র চালু ক্যাম্প)</label>
-            <select id="vol-assigned-camp" name="assignedCampId" class="form-control">
-              <option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>
+            <label class="form-label required">স্বাস্থ্য ক্যাম্প নির্ধারণ (বাধ্যতামূলক)</label>
+            <select id="vol-assigned-camp" name="assignedCampId" class="form-control" required>
+              <option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (বাধ্যতামূলক) --</option>
             </select>
-            <div class="form-hint" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">* শুধুমাত্র চালু থাকা স্বাস্থ্য ক্যাম্পেই স্বেচ্ছাসেবক যুক্ত করা যাবে।</div>
+            <div class="form-hint" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">* প্রতিটি স্বেচ্ছাসেবককে অবশ্যই একটি নির্দিষ্ট স্বাস্থ্য ক্যাম্পের অন্তর্ভুক্ত হতে হবে।</div>
           </div>
         </div>
 
@@ -225,11 +261,11 @@
           </div>
 
           <div class="form-group" style="margin-top:12px;">
-            <label class="form-label">নির্ধারিত স্বাস্থ্য ক্যাম্প (Camp Assignment)</label>
-            <select id="edit-vol-camp" name="assignedCampId" class="form-control">
-              <option value="">-- কোনো ক্যাম্প নির্ধারিত নেই --</option>
+            <label class="form-label required">নির্ধারিত স্বাস্থ্য ক্যাম্প (বাধ্যতামূলক)</label>
+            <select id="edit-vol-camp" name="assignedCampId" class="form-control" required>
+              <option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (বাধ্যতামূলক) --</option>
             </select>
-            <div class="form-hint" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">* শুধুমাত্র চালু থাকা স্বাস্থ্য ক্যাম্পে স্বেচ্ছাসেবক যুক্ত বা স্থানান্তর করা যাবে।</div>
+            <div class="form-hint" style="color:var(--text-muted); font-size:0.8rem; margin-top:4px;">* প্রতিটি স্বেচ্ছাসেবকের জন্য নির্দিষ্ট স্বাস্থ্য ক্যাম্প থাকা আবশ্যক।</div>
           </div>
 
           <div class="form-group">
@@ -313,25 +349,98 @@
 
     let allCampsList = [];
     let allVolunteersData = [];
+    let currentSelectedCampId = localStorage.getItem('wcc_volunteer_selected_camp') || '';
+
+    function updateCampBanner(campId) {
+      const bannerName = document.getElementById('banner-camp-name');
+      const bannerVenue = document.getElementById('banner-camp-venue');
+      const bannerStatus = document.getElementById('banner-camp-status');
+
+      if (!campId || campId === 'all') {
+        if (bannerName) bannerName.innerHTML = '<b>নির্বাচিত ভিউ:</b> সকল স্বাস্থ্য ক্যাম্পের সমন্বিত তালিকা';
+        if (bannerVenue) bannerVenue.innerHTML = '<b>স্থান:</b> বিভিন্ন কেন্দ্র';
+        if (bannerStatus) bannerStatus.innerHTML = '<b>ফিল্টার:</b> সকল ক্যাম্প';
+        return;
+      }
+
+      const camp = (allCampsList || []).find(c => String(c._id) === String(campId));
+      if (camp) {
+        const pourashavaStr = camp.isPourashava && camp.pourashavaName ? ` [পৌরসভা: ${camp.pourashavaName}]` : '';
+        if (bannerName) bannerName.innerHTML = `<b>ক্যাম্প:</b> ${escapeHtml(camp.name)} (${escapeHtml(camp.campCode)})`;
+        if (bannerVenue) bannerVenue.innerHTML = `<b>স্থান:</b> ${escapeHtml(camp.venue)}, ${escapeHtml(camp.upazila)}, ${escapeHtml(camp.district)}${pourashavaStr}`;
+        if (bannerStatus) {
+          const statusText = camp.status === 'ACTIVE'
+            ? '<span style="color:#16a34a; font-weight:700;">● চালুকৃত (ACTIVE)</span>'
+            : '<span style="color:#64748b; font-weight:600;">○ সমাপ্ত (CLOSED)</span>';
+          bannerStatus.innerHTML = `<b>স্ট্যাটাস:</b> ${statusText}`;
+        }
+      }
+    }
 
     async function loadActiveCampsForVolunteers() {
-      const campSelect = document.getElementById('vol-assigned-camp');
-      if (!campSelect) return;
+      const filterCampSelect = document.getElementById('filter-camp-select');
+      const addModalCampSelect = document.getElementById('vol-assigned-camp');
+
       try {
         const res = await apiFetch('/api/camps');
         if (res && res.success) {
           allCampsList = Array.isArray(res.data) ? res.data : (res.data?.camps || []);
+
           if (allCampsList.length === 0) {
-            campSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
-          } else {
-            campSelect.innerHTML = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (ঐচ্ছিক) --</option>' +
-              allCampsList.map(c => `<option value="${c._id}">${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name}</option>`).join('');
+            if (filterCampSelect) filterCampSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
+            if (addModalCampSelect) addModalCampSelect.innerHTML = '<option value="">-- কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি --</option>';
+            return;
           }
+
+          // Pick best default camp if none selected yet or invalid
+          const hasStored = currentSelectedCampId && (currentSelectedCampId === 'all' || allCampsList.some(c => String(c._id) === String(currentSelectedCampId)));
+          if (!hasStored) {
+            const firstActive = allCampsList.find(c => c.status === 'ACTIVE');
+            currentSelectedCampId = firstActive ? String(firstActive._id) : String(allCampsList[0]._id);
+            localStorage.setItem('wcc_volunteer_selected_camp', currentSelectedCampId);
+          }
+
+          // Populate filter dropdown
+          let filterOptionsHtml = '<option value="all">-- সকল ক্যাম্পের সমন্বিত তালিকা (একত্রে দেখুন) --</option>';
+          allCampsList.forEach(c => {
+            const isSel = String(c._id) === String(currentSelectedCampId);
+            const statusIcon = c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]';
+            filterOptionsHtml += `<option value="${c._id}" ${isSel ? 'selected' : ''}>${statusIcon} ${c.name} (${c.campCode})</option>`;
+          });
+          if (filterCampSelect) {
+            filterCampSelect.innerHTML = filterOptionsHtml;
+            filterCampSelect.value = currentSelectedCampId;
+          }
+
+          // Populate add-volunteer modal dropdown (camp is mandatory)
+          let addOptionsHtml = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (বাধ্যতামূলক) --</option>';
+          allCampsList.forEach(c => {
+            const isSel = currentSelectedCampId !== 'all' && String(c._id) === String(currentSelectedCampId);
+            const statusIcon = c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]';
+            addOptionsHtml += `<option value="${c._id}" ${isSel ? 'selected' : ''}>${statusIcon} ${c.name} (${c.campCode})</option>`;
+          });
+          if (addModalCampSelect) {
+            addModalCampSelect.innerHTML = addOptionsHtml;
+            if (currentSelectedCampId !== 'all') {
+              addModalCampSelect.value = currentSelectedCampId;
+            }
+          }
+
+          updateCampBanner(currentSelectedCampId);
+          await loadVolunteers(currentSelectedCampId);
         }
       } catch (e) {
         console.warn('Could not load camps for volunteer', e);
       }
     }
+
+    window.openAddVolunteerForCurrentCamp = function() {
+      const addModalCampSelect = document.getElementById('vol-assigned-camp');
+      if (addModalCampSelect && currentSelectedCampId && currentSelectedCampId !== 'all') {
+        addModalCampSelect.value = currentSelectedCampId;
+      }
+      window.openModal('add-volunteer-modal');
+    };
 
     window.openEditVolunteerModal = function(volId) {
       const vol = allVolunteersData.find(v => String(v._id) === String(volId));
@@ -343,16 +452,19 @@
       document.getElementById('edit-vol-resp').value = vol.responsibility || 'Registration Desk';
       document.getElementById('edit-vol-status').value = vol.accountStatus || 'ACTIVE';
 
-      // Populate edit camp dropdown with all available camps
+      // Populate edit camp dropdown with all available camps (mandatory selection)
       const editCampSelect = document.getElementById('edit-vol-camp');
       const currentCampId = vol.assignedCamp?._id || vol.assignedCampId?._id || vol.assignedCampId || '';
 
-      let optionsHtml = '<option value="">-- কোনো ক্যাম্প নির্ধারিত নেই --</option>';
+      let optionsHtml = '<option value="">-- স্বাস্থ্য ক্যাম্প নির্বাচন করুন (বাধ্যতামূলক) --</option>';
       (allCampsList || []).forEach(c => {
         const isCurrent = String(c._id) === String(currentCampId);
-        optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name}</option>`;
+        optionsHtml += `<option value="${c._id}" ${isCurrent ? 'selected' : ''}>${c.status === 'ACTIVE' ? '● [চালু]' : '○ [অফ]'} ${c.name} (${c.campCode})</option>`;
       });
       editCampSelect.innerHTML = optionsHtml;
+      if (currentCampId) {
+        editCampSelect.value = String(currentCampId);
+      }
 
       window.openModal('edit-volunteer-modal');
     };
@@ -361,14 +473,29 @@
       const user = await checkAuth(['SUPER_ADMIN']);
       if (!user) return;
 
-      loadVolunteers();
-      loadActiveCampsForVolunteers();
+      await loadActiveCampsForVolunteers();
+
+      // Camp filter change handler
+      const filterCampSelect = document.getElementById('filter-camp-select');
+      if (filterCampSelect) {
+        filterCampSelect.addEventListener('change', async () => {
+          currentSelectedCampId = filterCampSelect.value;
+          localStorage.setItem('wcc_volunteer_selected_camp', currentSelectedCampId);
+          updateCampBanner(currentSelectedCampId);
+
+          const addModalCampSelect = document.getElementById('vol-assigned-camp');
+          if (addModalCampSelect && currentSelectedCampId !== 'all') {
+            addModalCampSelect.value = currentSelectedCampId;
+          }
+
+          await loadVolunteers(currentSelectedCampId);
+        });
+      }
 
       const openBtn = document.getElementById('open-add-volunteer-btn');
       if (openBtn) {
         openBtn.addEventListener('click', () => {
-          loadActiveCampsForVolunteers();
-          window.openModal('add-volunteer-modal');
+          window.openAddVolunteerForCurrentCamp();
         });
       }
 
@@ -400,6 +527,12 @@
           const selectedCamp = campSelect ? campSelect.value : (form.assignedCampId?.value || null);
           const cleanCampId = (selectedCamp && selectedCamp.trim() !== '') ? selectedCamp.trim() : null;
 
+          if (!cleanCampId) {
+            showToast('অনুগ্রহ করে স্বেচ্ছাসেবকের জন্য একটি নির্দিষ্ট স্বাস্থ্য ক্যাম্প নির্বাচন করুন', 'error');
+            btn.disabled = false;
+            return;
+          }
+
           const body = {
             fullName: form.fullName.value.trim(),
             phone: form.phone.value.trim(),
@@ -416,11 +549,20 @@
           });
 
           if (res && res.success) {
-            showToast('স্বেচ্ছাসেবক সফলভাবে যুক্ত হয়েছে', 'success');
+            showToast('স্বেচ্ছাসেবক সফলভাবে নির্বাচিত ক্যাম্পে যুক্ত হয়েছে', 'success');
             window.closeModal('add-volunteer-modal');
             form.reset();
             document.getElementById('login-fields-box').style.display = 'none';
-            await loadVolunteers();
+
+            // If user added to a camp other than current filter, optionally switch or reload
+            if (currentSelectedCampId !== 'all' && currentSelectedCampId !== cleanCampId) {
+              currentSelectedCampId = cleanCampId;
+              localStorage.setItem('wcc_volunteer_selected_camp', currentSelectedCampId);
+              if (filterCampSelect) filterCampSelect.value = currentSelectedCampId;
+              updateCampBanner(currentSelectedCampId);
+            }
+
+            await loadVolunteers(currentSelectedCampId);
           }
         } catch (err) {
           showToast(err.message, 'error');
@@ -435,6 +577,12 @@
         editForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           const volId = document.getElementById('edit-vol-id').value;
+          const assignedCampId = document.getElementById('edit-vol-camp').value;
+          if (!assignedCampId) {
+            showToast('অনুগ্রহ করে স্বাস্থ্য ক্যাম্প নির্বাচন করুন', 'error');
+            return;
+          }
+
           const btn = editForm.querySelector('button[type="submit"]');
           btn.disabled = true;
 
@@ -443,7 +591,7 @@
               fullName: document.getElementById('edit-vol-name').value.trim(),
               phone: document.getElementById('edit-vol-phone').value.trim(),
               responsibility: document.getElementById('edit-vol-resp').value,
-              assignedCampId: document.getElementById('edit-vol-camp').value || null,
+              assignedCampId: assignedCampId,
               accountStatus: document.getElementById('edit-vol-status').value
             };
 
@@ -455,7 +603,7 @@
             if (res && res.success) {
               showToast('স্বেচ্ছাসেবকের ক্যাম্প ও তথ্য সফলভাবে আপডেট হয়েছে', 'success');
               window.closeModal('edit-volunteer-modal');
-              await loadVolunteers();
+              await loadVolunteers(currentSelectedCampId);
             }
           } catch (err) {
             showToast(err.message, 'error');
@@ -466,14 +614,42 @@
       }
     });
 
-    async function loadVolunteers() {
+    async function loadVolunteers(campId = currentSelectedCampId) {
       const tbody = document.getElementById('volunteers-table-body');
       try {
-        const res = await apiFetch('/api/volunteers');
+        const url = (campId && campId !== 'all')
+          ? `/api/volunteers?campId=${encodeURIComponent(campId)}`
+          : '/api/volunteers';
+
+        const res = await apiFetch(url);
         if (res && res.success) {
           allVolunteersData = res.data || [];
+
+          // Compute statistics for the current selection
+          const totalCount = allVolunteersData.length;
+          const regDeskCount = allVolunteersData.filter(v => v.responsibility === 'Registration Desk').length;
+          const coordCount = allVolunteersData.filter(v => v.responsibility === 'Coordination').length;
+
+          const statTotalEl = document.getElementById('stat-total-vol');
+          const statRegEl = document.getElementById('stat-reg-vol');
+          const statCoordEl = document.getElementById('stat-coord-vol');
+          if (statTotalEl) statTotalEl.textContent = toBanglaNumber(totalCount);
+          if (statRegEl) statRegEl.textContent = toBanglaNumber(regDeskCount);
+          if (statCoordEl) statCoordEl.textContent = toBanglaNumber(coordCount);
+
           if (allVolunteersData.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding:20px; color:var(--text-muted);">কোনো স্বেচ্ছাসেবক পাওয়া যায়নি</td></tr>`;
+            tbody.innerHTML = `
+              <tr>
+                <td colspan="8" style="text-align:center; padding:36px 20px; color:var(--text-muted);">
+                  <div style="font-size:1.05rem; font-weight:700; color:var(--text-main); margin-bottom:6px;">এই স্বাস্থ্য ক্যাম্পের জন্য এখনও কোনো স্বেচ্ছাসেবক যুক্ত করা হয়নি</div>
+                  <p style="margin-bottom:14px; font-size:0.9rem;">প্রতিটি ক্যাম্পের জন্য আলাদাভাবে স্বেচ্ছাসেবক দল গঠন করতে নিচের বোতাম চেপে যুক্ত করুন।</p>
+                  <button type="button" class="btn btn-primary" onclick="openAddVolunteerForCurrentCamp()" style="display:inline-flex; align-items:center; gap:6px;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <span>এই ক্যাম্পে নতুন স্বেচ্ছাসেবক যুক্ত করুন</span>
+                  </button>
+                </td>
+              </tr>
+            `;
             return;
           }
 
@@ -481,9 +657,10 @@
             const stats = v.stats || {};
             const assignedCamp = v.assignedCamp || v.assignedCampId;
             const campName = assignedCamp?.name || (typeof assignedCamp === 'string' ? assignedCamp : null);
+            const campCode = assignedCamp?.campCode ? ` [${assignedCamp.campCode}]` : '';
             const campBadge = campName
-              ? `<span class="status-badge active" style="font-weight:700; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#16a34a"><circle cx="12" cy="12" r="10"/></svg> ${escapeHtml(campName)}</span>`
-              : `<span class="status-badge closed" style="background:#f1f5f9; color:#64748b; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#94a3b8"><circle cx="12" cy="12" r="10"/></svg> ক্যাম্প নির্ধারিত নেই</span>`;
+              ? `<span class="status-badge active" style="font-weight:700; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#16a34a"><circle cx="12" cy="12" r="10"/></svg> ${escapeHtml(campName)}${escapeHtml(campCode)}</span>`
+              : `<span class="status-badge closed" style="background:#fef2f2; color:#b91c1c; display:inline-flex; align-items:center; gap:5px;"><svg width="8" height="8" viewBox="0 0 24 24" fill="#ef4444"><circle cx="12" cy="12" r="10"/></svg> ক্যাম্প বরাদ্দ নেই</span>`;
 
             return `
               <tr>
@@ -546,7 +723,7 @@
           if (res && res.success) {
             showToast(res.message || 'স্বেচ্ছাসেবক সফলভাবে মুছে ফেলা হয়েছে', 'success');
             window.closeModal('delete-volunteer-modal');
-            await loadVolunteers();
+            await loadVolunteers(currentSelectedCampId);
           } else {
             throw new Error(res?.message || 'স্বেচ্ছাসেবক মুছে ফেলা যায়নি');
           }

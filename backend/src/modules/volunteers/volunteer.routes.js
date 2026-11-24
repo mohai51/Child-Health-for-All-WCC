@@ -22,7 +22,7 @@ const createVolunteerSchema = z.object({
     ]),
     createLoginAccount: z.boolean().optional(),
     profileImageAssetId: z.string().optional().nullable(),
-    assignedCampId: z.string().optional().nullable()
+    assignedCampId: z.string().min(1, 'স্বাস্থ্য ক্যাম্প নির্বাচন করা বাধ্যতামূলক (Health camp is required)')
   })
 });
 
