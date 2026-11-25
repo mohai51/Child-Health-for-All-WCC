@@ -53,6 +53,88 @@ async function ensureMeasurementOfficerAccount() {
   }
 }
 
+async function ensureDoctorAccount() {
+  try {
+    const existing = await User.findOne({ email: 'doctor@wcc.org.bd' });
+    if (!existing) {
+      const Doctor = require('../modules/doctors/doctor.model');
+      const Camp = require('../modules/camps/camp.model');
+      const CampMember = require('../modules/camps/campMember.model');
+      const activeCamp = await Camp.findOne({ status: 'ACTIVE' });
+      const passwordHash = await hashPassword('Doctor@123');
+      const user = await User.create({
+        name: 'ডা. ফারহানা হক (Dr. Farhana Huq)',
+        email: 'doctor@wcc.org.bd',
+        passwordHash,
+        role: 'DOCTOR',
+        accountStatus: 'ACTIVE'
+      });
+      const doctorProfile = await Doctor.create({
+        userId: user._id,
+        fullName: 'ডা. ফারহানা হক (Dr. Farhana Huq)',
+        specialty: 'নবজাতক ও শিশু বিশেষজ্ঞ (Newborn & Child Specialist)',
+        designation: 'কনসালট্যান্ট',
+        hospital: 'ঢাকা শিশু হাসপাতাল',
+        bmdcNumber: 'A-48291',
+        phone: '01711000001',
+        assignedCampId: activeCamp ? activeCamp._id : null,
+        accountStatus: 'ACTIVE'
+      });
+      if (activeCamp) {
+        await CampMember.create({
+          campId: activeCamp._id,
+          userId: user._id,
+          doctorId: doctorProfile._id,
+          campRole: 'DOCTOR'
+        });
+      }
+      logger.info('Official Doctor account created: doctor@wcc.org.bd');
+    }
+  } catch (err) {
+    logger.warn({ error: err.message }, 'Could not ensure Doctor account');
+  }
+}
+
+async function ensureVolunteerAccount() {
+  try {
+    const existing = await User.findOne({ email: 'volunteer@wcc.org.bd' });
+    if (!existing) {
+      const Volunteer = require('../modules/volunteers/volunteer.model');
+      const Camp = require('../modules/camps/camp.model');
+      const CampMember = require('../modules/camps/campMember.model');
+      const activeCamp = await Camp.findOne({ status: 'ACTIVE' });
+      const passwordHash = await hashPassword('Volunteer@123');
+      const user = await User.create({
+        name: 'সাদিয়া সুলতানা (Sadia Sultana)',
+        email: 'volunteer@wcc.org.bd',
+        passwordHash,
+        role: 'REGISTRATION_VOLUNTEER',
+        accountStatus: 'ACTIVE'
+      });
+      const volProfile = await Volunteer.create({
+        userId: user._id,
+        fullName: 'সাদিয়া সুলতানা (Sadia Sultana)',
+        email: 'volunteer@wcc.org.bd',
+        phone: '01811000001',
+        responsibility: 'Registration Desk',
+        assignedCampId: activeCamp ? activeCamp._id : null,
+        accountStatus: 'ACTIVE'
+      });
+      if (activeCamp) {
+        await CampMember.create({
+          campId: activeCamp._id,
+          userId: user._id,
+          volunteerId: volProfile._id,
+          campRole: 'VOLUNTEER'
+        });
+      }
+      logger.info('Official Volunteer account created: volunteer@wcc.org.bd');
+    }
+  } catch (err) {
+    logger.warn({ error: err.message }, 'Could not ensure Volunteer account');
+  }
+}
+
 async function seedInitialData() {
   try {
     const adminExists = await User.findOne({ role: 'SUPER_ADMIN' });
@@ -60,12 +142,16 @@ async function seedInitialData() {
       logger.info('Database already contains records. Skipping initial seeding.');
       await ensureSuperAdminAccount();
       await ensureMeasurementOfficerAccount();
+      await ensureDoctorAccount();
+      await ensureVolunteerAccount();
       return;
     }
 
     logger.info('Database is empty. Seeding official accounts...');
     await cleanAndSeedDatabase();
     await ensureMeasurementOfficerAccount();
+    await ensureDoctorAccount();
+    await ensureVolunteerAccount();
   } catch (error) {
     logger.error({ error: error.message }, 'Failed during initial data seeding');
   }
