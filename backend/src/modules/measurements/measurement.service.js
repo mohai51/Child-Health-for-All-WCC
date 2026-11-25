@@ -186,48 +186,72 @@ async function searchPatientForMeasurement({ patientQuery, campId }) {
     throw new Error('কোনো স্বাস্থ্য ক্যাম্প পাওয়া যায়নি (Camp not found)');
   }
 
-  // 2. Resolve Patient (by WCC ID, normalized numeric suffix, or phone)
-  let patient = null;
-  const isWccPattern = /^WCC-?\d+$/i.test(rawQuery);
-  const isNumericOnly = /^\d+$/.test(rawQuery);
+  // 2. Normalize Bangla digits to English digits
+  const bnToEn = { '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4', '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9' };
+  const normQuery = rawQuery.replace(/[০-৯]/g, d => bnToEn[d]).trim();
 
-  if (isWccPattern) {
-    const formattedId = rawQuery.replace(/^WCC-?/i, 'WCC-').toUpperCase();
-    patient = await Patient.findOne({ patientId: formattedId });
-    if (!patient) {
-      const numPart = rawQuery.replace(/\D/g, '');
-      const paddedId = `WCC-${numPart.padStart(6, '0')}`;
+  let patient = null;
+  let visit = null;
+
+  // 3. Check if query is purely numeric (Token number in this camp or numeric ID)
+  const isNumericOnly = /^\d+$/.test(normQuery);
+  const isWccPattern = /^WCC-?\d+$/i.test(normQuery);
+
+  if (isNumericOnly && normQuery.length <= 5) {
+    // In a health camp, a 1-5 digit number entered in the search box is primarily the Token Number for THIS camp
+    const tokenNum = parseInt(normQuery, 10);
+    if (!isNaN(tokenNum) && tokenNum > 0) {
+      const tokenVisit = await Visit.findOne({ campId: camp._id, visitToken: tokenNum }).populate('patientId');
+      if (tokenVisit && tokenVisit.patientId) {
+        patient = tokenVisit.patientId;
+        visit = tokenVisit;
+      }
+    }
+  }
+
+  // 4. If not found by camp token, resolve Patient (by WCC ID, 6-digit WCC suffix, phone, or name)
+  if (!patient) {
+    if (isWccPattern) {
+      const formattedId = normQuery.replace(/^WCC-?/i, 'WCC-').toUpperCase();
+      patient = await Patient.findOne({ patientId: formattedId });
+      if (!patient) {
+        const numPart = normQuery.replace(/\D/g, '');
+        const paddedId = `WCC-${numPart.padStart(6, '0')}`;
+        patient = await Patient.findOne({ patientId: paddedId });
+      }
+    } else if (isNumericOnly && normQuery.length === 6) {
+      const paddedId = `WCC-${normQuery.padStart(6, '0')}`;
       patient = await Patient.findOne({ patientId: paddedId });
+      if (!patient) {
+        patient = await Patient.findOne({ guardianPhone: normQuery });
+      }
+    } else if (isNumericOnly && normQuery.length > 6) {
+      patient = await Patient.findOne({ guardianPhone: normQuery });
+    } else {
+      patient = await Patient.findOne({
+        $or: [
+          { patientId: new RegExp(`^${normQuery}$`, 'i') },
+          { guardianPhone: normQuery },
+          { fullName: new RegExp(rawQuery, 'i') }
+        ]
+      });
     }
-  } else if (isNumericOnly && rawQuery.length <= 6) {
-    const paddedId = `WCC-${rawQuery.padStart(6, '0')}`;
-    patient = await Patient.findOne({ patientId: paddedId });
-    if (!patient) {
-      patient = await Patient.findOne({ guardianPhone: rawQuery });
-    }
-  } else {
-    patient = await Patient.findOne({
-      $or: [
-        { patientId: new RegExp(`^${rawQuery}$`, 'i') },
-        { guardianPhone: rawQuery },
-        { fullName: new RegExp(rawQuery, 'i') }
-      ]
-    });
   }
 
   if (!patient) {
-    throw new Error(`রোগী "${rawQuery}" খুঁজে পাওয়া যায়নি (Patient not found)`);
+    throw new Error(`টোকেন বা রোগী "${rawQuery}" খুঁজে পাওয়া যায়নি (Patient not found by Token, ID, Phone or Name)`);
   }
 
-  // 3. Resolve Visit for this camp
-  let visit = await Visit.findOne({
-    patientId: patient._id,
-    campId: camp._id
-  });
+  // 5. Strictly enforce camp visit isolation (No cross-camp data leaks!)
+  if (!visit) {
+    visit = await Visit.findOne({
+      patientId: patient._id,
+      campId: camp._id
+    });
+  }
 
   if (!visit) {
-    // If patient is not yet registered in this specific camp, find their latest visit
-    visit = await Visit.findOne({ patientId: patient._id }).sort({ createdAt: -1 });
+    throw new Error(`রোগী "${patient.fullName} (${patient.patientId})" এই স্বাস্থ্য ক্যাম্পে নিবন্ধিত নন। অনুগ্রহ করে রেজিস্ট্রেশন ডেস্ক থেকে আগে এই ক্যাম্পের জন্য নিবন্ধন বা টোকেন সংগ্রহ করুন।`);
   }
 
   // Compute live BMI if values exist

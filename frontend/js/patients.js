@@ -152,6 +152,17 @@ function applyCampLocation(camp) {
   const pourashavaHint = document.getElementById('camp-pourashava-hint');
   const wardSelect = document.getElementById('ward-select');
 
+  // Detect ward from camp name (e.g., "Child Health For All - 6 no Ward Jhalokathi [BGC]" -> "ওয়ার্ড ৬")
+  const englishToBanglaDigits = { '0': '০', '1': '১', '2': '২', '3': '৩', '4': '৪', '5': '৫', '6': '৬', '7': '৭', '8': '৮', '9': '৯' };
+  let detectedWardOption = null;
+  const wardMatch = (camp.name || '').match(/([0-9০-৯]+)\s*(?:no|নং)?\s*(?:ward|ওয়ার্ড|ওয়ার্ড)/i) ||
+                    (camp.name || '').match(/(?:ward|ওয়ার্ড|ওয়ার্ড)\s*([0-9০-৯]+)/i);
+  if (wardMatch) {
+    const rawNum = wardMatch[1];
+    const banglaNum = rawNum.split('').map(ch => englishToBanglaDigits[ch] || ch).join('');
+    detectedWardOption = `ওয়ার্ড ${banglaNum}`;
+  }
+
   if (camp.isPourashava) {
     if (pourashavaCheck) pourashavaCheck.checked = true;
     if (pourashavaBox) pourashavaBox.style.display = 'block';
@@ -160,10 +171,19 @@ function applyCampLocation(camp) {
       pourashavaNameInput.readOnly = true;
       pourashavaNameInput.style.backgroundColor = '#F3F4F6';
     }
-    if (pourashavaHint) {
-      pourashavaHint.innerText = `পৌরসভা স্বয়ংক্রিয়ভাবে নির্ধারিত: ${camp.pourashavaName} (অনুগ্রহ করে শুধু ওয়ার্ড নম্বর নির্বাচন করুন)`;
+
+    if (wardSelect && detectedWardOption) {
+      const optionExists = Array.from(wardSelect.options).some(opt => opt.value === detectedWardOption);
+      if (optionExists) {
+        wardSelect.value = detectedWardOption;
+      }
     }
-    if (wardSelect) {
+
+    if (pourashavaHint) {
+      const wardHint = detectedWardOption ? ` • স্বয়ংক্রিয় ওয়ার্ড: ${detectedWardOption}` : ' (অনুগ্রহ করে শুধু ওয়ার্ড নম্বর নির্বাচন করুন)';
+      pourashavaHint.innerText = `পৌরসভা: ${camp.pourashavaName || 'ঝালকাঠি'}${wardHint}`;
+    }
+    if (wardSelect && !wardSelect.value) {
       wardSelect.focus();
     }
   } else {

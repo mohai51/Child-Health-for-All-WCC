@@ -59,69 +59,59 @@ async function searchPatientForConsultation({ patientIdStr, campId, doctorUserId
   const normStr = rawStr.replace(/[০-৯]/g, d => bnToEn[d]).trim();
   const upperStr = normStr.toUpperCase();
 
-  // Extract digits for padded WCC format
+  // Extract digits for token or padded WCC format
   const digitsOnly = normStr.replace(/\D/g, '');
-  const paddedId = digitsOnly ? `WCC-${digitsOnly.padStart(6, '0')}` : null;
+  const isPureNumber = /^\d+$/.test(normStr);
+  const isExplicitWcc = /^WCC-?\d+$/i.test(normStr);
 
-  // Build flexible search conditions
-  const patientConditions = [
-    { patientId: upperStr },
-    { patientId: new RegExp(`^${upperStr}$`, 'i') },
-    { guardianPhone: normStr },
-    { fullName: new RegExp(rawStr, 'i') }
-  ];
+  let patient = null;
+  let visit = null;
 
-  if (paddedId) {
-    patientConditions.unshift({ patientId: paddedId });
-  }
-
-  if (digitsOnly.length >= 4) {
-    patientConditions.push({ guardianPhone: new RegExp(digitsOnly, 'i') });
-  }
-
-  let patient = await Patient.findOne({ $or: patientConditions });
-
-  // 4. Fallback search by camp token number
-  if (!patient && digitsOnly) {
-    const tokenNum = parseInt(digitsOnly, 10);
-    const tokenVisit = await Visit.findOne({ campId: camp._id, visitToken: tokenNum }).populate('patientId');
-    if (tokenVisit && tokenVisit.patientId) {
-      patient = tokenVisit.patientId;
+  // 4. Token Search FIRST: If doctor entered a 1-5 digit number, look up Visit Token in THIS camp
+  if (isPureNumber && normStr.length <= 5) {
+    const tokenNum = parseInt(normStr, 10);
+    if (!isNaN(tokenNum) && tokenNum > 0) {
+      const tokenVisit = await Visit.findOne({ campId: camp._id, visitToken: tokenNum }).populate('patientId');
+      if (tokenVisit && tokenVisit.patientId) {
+        patient = tokenVisit.patientId;
+        visit = tokenVisit;
+      }
     }
   }
 
-  // 5. Fallback search by partial patientId
-  if (!patient && digitsOnly) {
-    patient = await Patient.findOne({ patientId: new RegExp(digitsOnly, 'i') });
+  // 5. If not found by camp token, search patient by ID, Phone, or Name
+  if (!patient) {
+    const patientConditions = [
+      { patientId: upperStr },
+      { patientId: new RegExp(`^${upperStr}$`, 'i') },
+      { guardianPhone: normStr },
+      { fullName: new RegExp(rawStr, 'i') }
+    ];
+
+    if (isExplicitWcc && digitsOnly) {
+      patientConditions.unshift({ patientId: `WCC-${digitsOnly.padStart(6, '0')}` });
+    } else if (isPureNumber && normStr.length === 6) {
+      patientConditions.unshift({ patientId: `WCC-${normStr}` });
+    }
+
+    if (digitsOnly.length >= 7) {
+      patientConditions.push({ guardianPhone: new RegExp(digitsOnly, 'i') });
+    }
+
+    patient = await Patient.findOne({ $or: patientConditions });
   }
 
   if (!patient) {
-    throw new Error(`রোগী '${rawStr}' ডাটাবেজে পাওয়া যায়নি (Patient not found by ID, Token, Phone or Name)`);
+    throw new Error(`টোকেন বা রোগী '${rawStr}' ডাটাবেজে পাওয়া যায়নি (Patient not found by Token, ID, Phone or Name)`);
   }
 
-  // 6. Verify or create Visit for this camp
-  let visit = await Visit.findOne({ campId: camp._id, patientId: patient._id });
+  // 6. Verify Visit for this camp (Strict Isolation: NEVER auto-create visits across camps!)
   if (!visit) {
-    const count = await Visit.countDocuments({ campId: camp._id });
+    visit = await Visit.findOne({ campId: camp._id, patientId: patient._id });
+  }
 
-    // Ensure valid ObjectId for registeredBy
-    let registeredBy = (doctorUserId && mongoose.Types.ObjectId.isValid(doctorUserId)) ? doctorUserId : null;
-    if (!registeredBy && doctor?.userId) {
-      registeredBy = doctor.userId;
-    }
-    if (!registeredBy) {
-      const anyUser = await User.findOne();
-      registeredBy = anyUser?._id;
-    }
-
-    const visitToken = await Counter.getNextVisitToken(camp._id);
-    visit = await Visit.create({
-      campId: camp._id,
-      patientId: patient._id,
-      registeredBy, // MUST BE registeredBy, matching visit.model.js
-      visitToken,
-      mainComplaint: patient.mainComplaint || 'সাধারণ স্বাস্থ্য পরীক্ষা'
-    });
+  if (!visit) {
+    throw new Error(`রোগী '${patient.fullName} (${patient.patientId})' এই স্বাস্থ্য ক্যাম্পে নিবন্ধিত নন। ডাক্তার দেখানোর পূর্বে রেজিস্ট্রেশন ডেস্ক থেকে আগে এই ক্যাম্পের জন্য নিবন্ধন / টোকেন সংগ্রহ করুন।`);
   }
 
   // 7. Find any previous consultations for this patient (medical history)
