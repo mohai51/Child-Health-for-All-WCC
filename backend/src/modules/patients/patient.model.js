@@ -80,6 +80,15 @@ const patientSchema = new mongoose.Schema(
       type: Number,
       default: null
     },
+    muac: {
+      type: Number,
+      default: null
+    },
+    muacStatus: {
+      type: String,
+      default: '',
+      trim: true
+    },
     bloodGroup: {
       type: String,
       default: '',

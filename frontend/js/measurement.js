@@ -41,10 +41,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Live BMI calculation listeners
   const heightInput = document.getElementById('input-height');
+  const heightFtInput = document.getElementById('input-height-ft');
+  const heightInInput = document.getElementById('input-height-in');
+  const heightUnitSelect = document.getElementById('height-unit-select');
   const weightInput = document.getElementById('input-weight');
+  const muacInput = document.getElementById('input-muac');
 
   if (heightInput) heightInput.addEventListener('input', updateLiveBmiPreview);
   if (weightInput) weightInput.addEventListener('input', updateLiveBmiPreview);
+  if (heightFtInput) heightFtInput.addEventListener('input', () => {
+    updateFtToCmPreview();
+    updateLiveBmiPreview();
+  });
+  if (heightInInput) heightInInput.addEventListener('input', () => {
+    updateFtToCmPreview();
+    updateLiveBmiPreview();
+  });
+  if (heightUnitSelect) {
+    heightUnitSelect.addEventListener('change', () => {
+      setHeightUnit(heightUnitSelect.value);
+    });
+  }
+  if (muacInput) {
+    muacInput.addEventListener('input', updateLiveMuacBadge);
+  }
 
   // Form submission
   const form = document.getElementById('measurement-form');
@@ -161,21 +181,44 @@ function renderPatient(data) {
 
   // Prefill input fields
   const heightInput = document.getElementById('input-height');
+  const heightFtInput = document.getElementById('input-height-ft');
+  const heightInInput = document.getElementById('input-height-in');
   const weightInput = document.getElementById('input-weight');
+  const muacInput = document.getElementById('input-muac');
   const bloodGroupInput = document.getElementById('input-blood-group');
   const hemoglobinInput = document.getElementById('input-hemoglobin');
 
   if (heightInput) heightInput.value = p.height || '';
   if (weightInput) weightInput.value = p.weight || '';
+  if (muacInput) muacInput.value = p.muac || '';
   if (bloodGroupInput) bloodGroupInput.value = p.bloodGroup || '';
   if (hemoglobinInput) hemoglobinInput.value = p.hemoglobin || '';
 
-  // Trigger live BMI calculation
+  // If patient has height in cm, also populate feet and inch
+  if (p.height && p.height > 0) {
+    const totalInches = p.height / 2.54;
+    const ft = Math.floor(totalInches / 12);
+    const inc = parseFloat((totalInches % 12).toFixed(1));
+    if (heightFtInput) heightFtInput.value = ft;
+    if (heightInInput) heightInInput.value = inc;
+    updateFtToCmPreview();
+  } else {
+    if (heightFtInput) heightFtInput.value = '';
+    if (heightInInput) heightInInput.value = '';
+  }
+
+  // Trigger live MUAC and BMI calculations
+  updateLiveMuacBadge();
   updateLiveBmiPreview();
 
   // Focus on height input for smooth data entry
   setTimeout(() => {
-    if (heightInput) heightInput.focus();
+    const unitSelect = document.getElementById('height-unit-select');
+    if (unitSelect && unitSelect.value === 'ft' && heightFtInput) {
+      heightFtInput.focus();
+    } else if (heightInput) {
+      heightInput.focus();
+    }
   }, 100);
 }
 
@@ -261,13 +304,121 @@ function calculatePediatricBMI(weightKg, heightCm, ageYears) {
   return { bmi, status, badgeClass };
 }
 
+// Height unit selector & normalization logic
+let currentHeightUnit = 'cm';
+
+function setHeightUnit(unit) {
+  currentHeightUnit = unit;
+  const cmBox = document.getElementById('height-cm-box');
+  const ftBox = document.getElementById('height-ft-box');
+  const cmInput = document.getElementById('input-height');
+  const ftInput = document.getElementById('input-height-ft');
+  const inInput = document.getElementById('input-height-in');
+  const unitSelect = document.getElementById('height-unit-select');
+
+  if (unitSelect) unitSelect.value = unit;
+
+  if (unit === 'ft') {
+    // Convert existing cm value to feet & inches
+    const cmVal = parseFloat(cmInput?.value);
+    if (cmVal && cmVal > 0) {
+      const totalInches = cmVal / 2.54;
+      const ft = Math.floor(totalInches / 12);
+      const inc = parseFloat((totalInches % 12).toFixed(1));
+      if (ftInput) ftInput.value = ft;
+      if (inInput) inInput.value = inc;
+      updateFtToCmPreview();
+    }
+    if (cmBox) cmBox.style.display = 'none';
+    if (ftBox) ftBox.style.display = 'block';
+    if (cmInput) cmInput.required = false;
+  } else {
+    // Convert existing ft & in value to cm
+    const ftVal = parseFloat(ftInput?.value) || 0;
+    const inVal = parseFloat(inInput?.value) || 0;
+    const totalInches = (ftVal * 12) + inVal;
+    if (totalInches > 0) {
+      const cmVal = parseFloat((totalInches * 2.54).toFixed(1));
+      if (cmInput) cmInput.value = cmVal;
+    }
+    if (ftBox) ftBox.style.display = 'none';
+    if (cmBox) cmBox.style.display = 'block';
+    if (cmInput) cmInput.required = true;
+  }
+
+  updateLiveBmiPreview();
+}
+
+// Get normalized height in centimeters
+function getNormalizedHeightCm() {
+  if (currentHeightUnit === 'ft') {
+    const ftVal = parseFloat(document.getElementById('input-height-ft')?.value) || 0;
+    const inVal = parseFloat(document.getElementById('input-height-in')?.value) || 0;
+    const totalInches = (ftVal * 12) + inVal;
+    if (totalInches <= 0) return null;
+    return parseFloat((totalInches * 2.54).toFixed(1));
+  } else {
+    const val = parseFloat(document.getElementById('input-height')?.value);
+    return (val && val > 0) ? val : null;
+  }
+}
+
+// Update feet to cm live badge preview
+function updateFtToCmPreview() {
+  const previewEl = document.getElementById('ft-to-cm-preview');
+  if (!previewEl) return;
+
+  const ftVal = parseFloat(document.getElementById('input-height-ft')?.value) || 0;
+  const inVal = parseFloat(document.getElementById('input-height-in')?.value) || 0;
+  const totalInches = (ftVal * 12) + inVal;
+
+  if (totalInches > 0) {
+    const cm = (totalInches * 2.54).toFixed(1);
+    const meter = (cm / 100).toFixed(2);
+    previewEl.innerText = `≈ ${toBanglaNumber(cm)} সেমি (${toBanglaNumber(meter)} মিটার)`;
+  } else {
+    previewEl.innerText = '-';
+  }
+}
+
+// Evaluate and update live MUAC status badge
+function updateLiveMuacBadge() {
+  const muacInput = document.getElementById('input-muac');
+  const badge = document.getElementById('muac-status-badge');
+  if (!muacInput || !badge) return;
+
+  const val = parseFloat(muacInput.value);
+  if (!val || val <= 0) {
+    badge.style.display = 'none';
+    return;
+  }
+
+  badge.style.display = 'inline-block';
+  if (val < 11.5) {
+    badge.innerText = '🔴 তীব্র অপুষ্টি (SAM)';
+    badge.style.background = '#fee2e2';
+    badge.style.color = '#b91c1c';
+    badge.style.border = '1px solid #fca5a5';
+  } else if (val <= 12.4) {
+    badge.innerText = '🟡 মাঝারি অপুষ্টি (MAM)';
+    badge.style.background = '#fef3c7';
+    badge.style.color = '#b45309';
+    badge.style.border = '1px solid #fcd34d';
+  } else {
+    badge.innerText = '🟢 স্বাভাবিক (Normal)';
+    badge.style.background = '#dcfce7';
+    badge.style.color = '#15803d';
+    badge.style.border = '1px solid #86efac';
+  }
+}
+
 // Update live BMI on UI
 function updateLiveBmiPreview() {
-  const heightVal = document.getElementById('input-height')?.value;
+  const heightCm = getNormalizedHeightCm();
   const weightVal = document.getElementById('input-weight')?.value;
   const age = currentPatient?.ageYears || 5;
 
-  const res = calculatePediatricBMI(weightVal, heightVal, age);
+  const res = calculatePediatricBMI(weightVal, heightCm, age);
 
   const valEl = document.getElementById('bmi-numeric-val');
   const badgeEl = document.getElementById('bmi-status-badge');
@@ -291,12 +442,13 @@ async function handleSaveMeasurement(e) {
     return;
   }
 
-  const height = document.getElementById('input-height')?.value.trim();
+  const heightCm = getNormalizedHeightCm();
   const weight = document.getElementById('input-weight')?.value.trim();
+  const muac = document.getElementById('input-muac')?.value.trim();
   const bloodGroup = document.getElementById('input-blood-group')?.value.trim();
   let hemoglobin = document.getElementById('input-hemoglobin')?.value.trim();
 
-  if (!height || !weight) {
+  if (!heightCm || !weight) {
     showToast('উচ্চতা ও ওজন উভয় ফিল্ড পূরণ করা আবশ্যক', 'error');
     return;
   }
@@ -312,8 +464,9 @@ async function handleSaveMeasurement(e) {
     const payload = {
       patientId: currentPatient._id,
       campId,
-      height: parseFloat(height),
+      height: heightCm,
       weight: parseFloat(weight),
+      muac: muac ? parseFloat(muac) : null,
       bloodGroup,
       hemoglobin
     };
@@ -360,6 +513,14 @@ function resetMeasurementScreen() {
 
   const form = document.getElementById('measurement-form');
   if (form) form.reset();
+
+  setHeightUnit('cm');
+
+  const muacBadge = document.getElementById('muac-status-badge');
+  if (muacBadge) muacBadge.style.display = 'none';
+
+  const previewEl = document.getElementById('ft-to-cm-preview');
+  if (previewEl) previewEl.innerText = '-';
 
   const valEl = document.getElementById('bmi-numeric-val');
   const badgeEl = document.getElementById('bmi-status-badge');

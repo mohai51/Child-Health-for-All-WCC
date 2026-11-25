@@ -6,6 +6,51 @@ const Consultation = require('../consultations/consultation.model');
 const { logAuditEvent } = require('../../services/audit.service');
 
 /**
+ * Evaluate pediatric Mid-Upper Arm Circumference (MUAC) based on WHO guidelines
+ * < 11.5 cm : Severe Acute Malnutrition (SAM)
+ * 11.5 - 12.4 cm : Moderate Acute Malnutrition (MAM)
+ * >= 12.5 cm : Normal Nutritional Status
+ * 
+ * @param {number} muacCm 
+ */
+function evaluateMUAC(muacCm) {
+  const m = parseFloat(muacCm);
+  if (!m || isNaN(m) || m <= 0) {
+    return {
+      muac: null,
+      muacStatus: '',
+      statusClass: '',
+      statusColor: '#64748b'
+    };
+  }
+
+  let muacStatus = 'স্বাভাবিক (Normal)';
+  let statusClass = 'status-normal';
+  let statusColor = '#16a34a';
+
+  if (m < 11.5) {
+    muacStatus = 'তীব্র অপুষ্টি (SAM)';
+    statusClass = 'status-underweight';
+    statusColor = '#dc2626';
+  } else if (m <= 12.4) {
+    muacStatus = 'মাঝারি অপুষ্টি (MAM)';
+    statusClass = 'status-overweight';
+    statusColor = '#d97706';
+  } else {
+    muacStatus = 'স্বাভাবিক (Normal)';
+    statusClass = 'status-normal';
+    statusColor = '#16a34a';
+  }
+
+  return {
+    muac: m,
+    muacStatus,
+    statusClass,
+    statusColor
+  };
+}
+
+/**
  * Calculate pediatric Body Mass Index (BMI) and health status category
  * Based on WHO / CDC pediatric growth standards
  * 
@@ -205,6 +250,8 @@ async function searchPatientForMeasurement({ patientQuery, campId }) {
       upazila: patient.upazila,
       weight: patient.weight,
       height: patient.height,
+      muac: patient.muac || null,
+      muacStatus: patient.muacStatus || '',
       bloodGroup: patient.bloodGroup || '',
       hemoglobin: patient.hemoglobin || '',
       bmi: patient.bmi || bmiInfo.bmi,
@@ -212,6 +259,7 @@ async function searchPatientForMeasurement({ patientQuery, campId }) {
       mainComplaint: patient.mainComplaint || ''
     },
     bmiInfo,
+    muacInfo: evaluateMUAC(patient.muac),
     visit: visit ? {
       _id: visit._id,
       visitToken: visit.visitToken,
@@ -236,6 +284,7 @@ async function savePatientMeasurement({
   campId,
   height,
   weight,
+  muac = null,
   bloodGroup = '',
   hemoglobin = '',
   measuredByUserId,
@@ -258,15 +307,21 @@ async function savePatientMeasurement({
 
   const parsedHeight = (height !== undefined && height !== null && height !== '') ? parseFloat(height) : null;
   const parsedWeight = (weight !== undefined && weight !== null && weight !== '') ? parseFloat(weight) : null;
+  const parsedMuac = (muac !== undefined && muac !== null && muac !== '') ? parseFloat(muac) : null;
   const cleanBloodGroup = String(bloodGroup || '').trim();
   let cleanHb = String(hemoglobin || '').replace(/%/g, '').trim();
 
   // Compute BMI and Category
   const bmiInfo = calculateChildBMI(parsedWeight, parsedHeight, patient.ageYears, patient.sex);
+  const muacInfo = evaluateMUAC(parsedMuac);
 
   // Update Patient document
   if (parsedHeight !== null) patient.height = parsedHeight;
   if (parsedWeight !== null) patient.weight = parsedWeight;
+  if (parsedMuac !== null) {
+    patient.muac = parsedMuac;
+    patient.muacStatus = muacInfo.muacStatus;
+  }
   if (cleanBloodGroup) patient.bloodGroup = cleanBloodGroup;
   if (cleanHb) patient.hemoglobin = cleanHb;
   if (bmiInfo.bmi !== null) {
@@ -286,6 +341,10 @@ async function savePatientMeasurement({
     if (consultation) {
       if (cleanBloodGroup) consultation.bloodGroup = cleanBloodGroup;
       if (cleanHb) consultation.hemoglobin = cleanHb;
+      if (parsedMuac !== null) {
+        consultation.muac = parsedMuac;
+        consultation.muacStatus = muacInfo.muacStatus;
+      }
       if (bmiInfo.bmi !== null) {
         consultation.bmi = bmiInfo.bmi;
         consultation.bmiStatus = bmiInfo.bmiStatus;
@@ -307,6 +366,7 @@ async function savePatientMeasurement({
         patientId: patient.patientId,
         height: parsedHeight,
         weight: parsedWeight,
+        muac: parsedMuac,
         bmi: bmiInfo.bmi,
         bloodGroup: cleanBloodGroup,
         hemoglobin: cleanHb
@@ -318,12 +378,14 @@ async function savePatientMeasurement({
   return {
     patient,
     bmiInfo,
+    muacInfo,
     message: 'পরিমাপ সফলভাবে সংরক্ষিত হয়েছে! এবার রোগীকে ডাক্তারের কাছে যেতে পারেন।'
   };
 }
 
 module.exports = {
   calculateChildBMI,
+  evaluateMUAC,
   searchPatientForMeasurement,
   savePatientMeasurement
 };

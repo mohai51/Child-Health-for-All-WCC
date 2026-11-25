@@ -50,6 +50,15 @@ const consultationSchema = new mongoose.Schema(
       default: '',
       trim: true
     },
+    muac: {
+      type: Number,
+      default: null
+    },
+    muacStatus: {
+      type: String,
+      default: '',
+      trim: true
+    },
     bmi: {
       type: Number,
       default: null

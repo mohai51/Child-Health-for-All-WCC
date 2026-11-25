@@ -289,6 +289,7 @@
                     <th>ফোন নম্বর</th>
                     <th style="text-align: center;">রক্তের গ্রুপ</th>
                     <th style="text-align: center;">হিমোগ্লোবিন (%)</th>
+                    <th style="text-align: center;">MUAC (সেমি)</th>
                     <th style="text-align: center;">BMI</th>
                     <th>কোন ডাক্তার দেখেছেন</th>
                     <th style="text-align: center;">রেফারেল হয়েছে কিনা</th>
@@ -475,6 +476,7 @@
             <td>${escapeHtml(p.phone)}</td>
             <td style="text-align:center;"><span class="badge-counter" style="font-weight:700; color:#b91c1c; border-color:#fca5a5; background:#fff1f2;">${escapeHtml(p.bloodGroup || '-')}</span></td>
             <td style="text-align:center; font-weight:700; color:#166534;">${escapeHtml(p.hemoglobin || '-')}</td>
+            <td style="text-align:center; font-weight:700; color:#0f766e;">${p.muac && p.muac !== '-' ? `${toBanglaNumber(p.muac)}` : '-'}</td>
             <td style="text-align:center; font-weight:700; color:#0369a1;">${p.bmi && p.bmi !== '-' ? toBanglaNumber(p.bmi) : '-'}</td>
             <td><b>${escapeHtml(p.doctorName)}</b></td>
             <td style="text-align:center;">
@@ -611,6 +613,7 @@
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px;">${escapeHtml(p.phone)}</td>
             <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#b91c1c;">${escapeHtml(p.bloodGroup || '-')}</td>
             <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#166534;">${escapeHtml(p.hemoglobin || '-')}</td>
+            <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#0f766e;">${escapeHtml(p.muac && p.muac !== '-' ? toBanglaNumber(p.muac) : '-')}</td>
             <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:#0369a1;">${escapeHtml(p.bmi || '-')}</td>
             <td style="border:1px solid #94a3b8; padding:6px; font-size:10px; font-weight:600;">${escapeHtml(p.doctorName)}</td>
             <td style="border:1px solid #94a3b8; padding:6px; text-align:center; font-size:10px; font-weight:700; color:${p.isReferred === 'Yes' ? '#15803d' : '#64748b'};">
@@ -679,6 +682,7 @@
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">ফোন</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">ব্লাড গ্রুপ</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">হিমোগ্লোবিন (%)</th>
+                <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">MUAC</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">BMI</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:left;">চিকিৎসক</th>
                 <th style="border:1px solid #94a3b8; padding:6px; font-size:10px; text-align:center;">রেফারেল</th>

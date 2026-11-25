@@ -33,6 +33,7 @@ async function saveMeasurement(req, res) {
       campId,
       height,
       weight,
+      muac,
       bloodGroup,
       hemoglobin
     } = req.body;
@@ -42,6 +43,7 @@ async function saveMeasurement(req, res) {
       campId: campId || req.params.campId,
       height,
       weight,
+      muac,
       bloodGroup,
       hemoglobin,
       measuredByUserId: req.user?._id,

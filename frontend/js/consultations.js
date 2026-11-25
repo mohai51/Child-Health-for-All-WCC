@@ -325,17 +325,56 @@ function renderPatientDetails(data) {
   }
 
   let vitalsText = `ওজন: ${p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'N/A'}, উচ্চতা: ${p.height ? `${toBanglaNumber(p.height)} সেমি` : 'N/A'}`;
+  if (p.muac) vitalsText += `, MUAC: ${toBanglaNumber(p.muac)} সেমি`;
   if (bmiVal) vitalsText += ` | BMI: ${toBanglaNumber(bmiVal)} kg/m² (${bmiStatusText})`;
   document.getElementById('pv-vitals').innerText = vitalsText;
 
   // Update dedicated strip elements
   const heightEl = document.getElementById('pv-height');
   const weightEl = document.getElementById('pv-weight');
+  const muacEl = document.getElementById('pv-muac');
+  const muacBadgeEl = document.getElementById('pv-muac-badge');
   const bmiValEl = document.getElementById('pv-bmi-val');
   const bmiBadgeEl = document.getElementById('pv-bmi-badge');
 
-  if (heightEl) heightEl.innerText = p.height ? `${toBanglaNumber(p.height)} সেমি` : 'নেই';
+  if (heightEl) {
+    if (p.height) {
+      const totalIn = p.height / 2.54;
+      const ft = Math.floor(totalIn / 12);
+      const inc = Math.round(totalIn % 12);
+      heightEl.innerText = `${toBanglaNumber(p.height)} সেমি (${toBanglaNumber(ft)}' ${toBanglaNumber(inc)}")`;
+    } else {
+      heightEl.innerText = 'নেই';
+    }
+  }
   if (weightEl) weightEl.innerText = p.weight ? `${toBanglaNumber(p.weight)} কেজি` : 'নেই';
+  if (muacEl) {
+    if (p.muac) {
+      muacEl.innerText = `${toBanglaNumber(p.muac)} সেমি`;
+      if (muacBadgeEl) {
+        muacBadgeEl.style.display = 'inline-block';
+        if (p.muac < 11.5) {
+          muacBadgeEl.innerText = 'তীব্র অপুষ্টি (SAM)';
+          muacBadgeEl.style.color = '#b91c1c';
+          muacBadgeEl.style.background = '#fee2e2';
+          muacBadgeEl.style.borderColor = '#fca5a5';
+        } else if (p.muac <= 12.4) {
+          muacBadgeEl.innerText = 'মাঝারি অপুষ্টি (MAM)';
+          muacBadgeEl.style.color = '#b45309';
+          muacBadgeEl.style.background = '#fef3c7';
+          muacBadgeEl.style.borderColor = '#fcd34d';
+        } else {
+          muacBadgeEl.innerText = 'স্বাভাবিক';
+          muacBadgeEl.style.color = '#15803d';
+          muacBadgeEl.style.background = '#dcfce7';
+          muacBadgeEl.style.borderColor = '#86efac';
+        }
+      }
+    } else {
+      muacEl.innerText = 'পরিমাপ নেই';
+      if (muacBadgeEl) muacBadgeEl.style.display = 'none';
+    }
+  }
   if (bmiValEl) bmiValEl.innerText = bmiVal ? `${toBanglaNumber(bmiVal)}` : '-';
   if (bmiBadgeEl) {
     bmiBadgeEl.innerText = bmiStatusText || (p.weight && p.height ? 'ক্যালকুলেটেড' : 'পরিমাপ নেই');
